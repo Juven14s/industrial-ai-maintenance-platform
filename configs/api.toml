@@ -1,0 +1,16 @@
+[models]
+central_directory = "artifacts/models/FD001/final"
+safety_directory = "artifacts/models/FD001/safety_v2"
+
+[server]
+host = "127.0.0.1"
+port = 8000
+
+[input]
+minimum_end_cycle = 20
+
+[documents]
+rag_config = "configs/rag.toml"
+
+[planning]
+config = "configs/maintenance_planning.toml"

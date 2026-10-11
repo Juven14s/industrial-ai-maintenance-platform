@@ -1,0 +1,24 @@
+# Final FD001 evaluation. Hyperparameters come from the frozen validation summary.
+# The official test is used only to report the final generalization metrics.
+
+[data]
+train_trajectories = "CMAPSSData/train_FD001.txt"
+test_trajectories = "CMAPSSData/test_FD001.txt"
+test_targets = "CMAPSSData/RUL_FD001.txt"
+
+[selection]
+summary = "reports/fd001/models/experiment_summary.json"
+summary_sha256 = "39fbc3d774f3becb6c00133456fcab16ee2e8de61b07c36088898248b993ad2a"
+model = "lstm"
+fixed_epochs = 6
+
+[output]
+artifact_directory = "artifacts/models/FD001/final"
+report_directory = "reports/fd001/test"
+
+[tracking]
+directory = "mlruns"
+experiment_name = "fd001-rul-official-test"
+
+[runtime]
+num_threads = 4

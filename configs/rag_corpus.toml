@@ -1,0 +1,112 @@
+schema_version = 1
+corpus_id = "cmapss-maintenance-v1"
+created_on = "2026-10-08"
+query_languages = ["fr", "en"]
+document_language = "en"
+
+[[documents]]
+id = "cmapss_dataset_readme"
+path = "CMAPSSData/readme.txt"
+title = "Turbofan Engine Degradation Simulation Data Set README"
+publisher = "NASA Ames Prognostics Center of Excellence"
+publication_year = 2008
+source_url = "https://data.nasa.gov/dataset/cmapss-jet-engine-simulated-data"
+download_url = "https://data.nasa.gov/docs/legacy/CMAPSSData.zip"
+format = "txt"
+encoding = "cp1252"
+page_count = 0
+size_bytes = 2442
+sha256 = "4f5270554b775c67e73aff383c5436fd329d6e4cc3d3a116913276fae511269b"
+authority = "primary"
+access_status = "public; license not specified on the NASA dataset page"
+roles = ["dataset_specification", "train_test_protocol", "rul_definition"]
+scope = "Official description of the FD001-FD004 files, columns, cycles, train/test truncation and RUL vectors."
+limitations = "The three operational settings remain anonymized and the README does not provide maintenance procedures."
+known_issues = [
+  "The README reports 248 FD004 train engines and 249 test engines; the files actually contain 249 train engines and 248 test engines.",
+  "The final column is mislabeled sensor measurement 26; the 26 columns comprise unit, cycle, three settings and 21 sensor measurements.",
+]
+
+[[documents]]
+id = "cmapss_damage_propagation_2008"
+path = "CMAPSSData/Damage Propagation Modeling.pdf"
+title = "Damage Propagation Modeling for Aircraft Engine Prognostics"
+authors = ["Abhinav Saxena", "Kai Goebel", "Don Simon", "Neil Eklund"]
+publisher = "NASA / PHM 2008"
+publication_year = 2008
+source_url = "https://ntrs.nasa.gov/citations/20090029214"
+download_url = "https://ntrs.nasa.gov/api/citations/20090029214/downloads/20090029214.pdf"
+format = "pdf"
+page_count = 9
+included_pdf_pages = ["1-8"]
+excluded_pdf_pages = [9]
+size_bytes = 434158
+sha256 = "e7aaef80c177333f400a4c1099fe76e67d244569b9397c937ec4cd3ed5b44a27"
+authority = "primary"
+access_status = "public NASA NTRS record"
+roles = ["degradation_generation", "sensor_semantics", "failure_criterion", "evaluation_metric"]
+scope = "Explains degradation injection, health-index failure, the physical sensor outputs and the PHM08 train/test/validation protocol."
+limitations = "The PHM08 challenge data are related to, but distinct from, the later FD001-FD004 collection."
+
+[[documents]]
+id = "cmapss_user_guide_v1"
+path = "docs/Doc_Tech.pdf"
+title = "User's Guide for the Commercial Modular Aero-Propulsion System Simulation (C-MAPSS)"
+authors = ["Dean K. Frederick", "Jonathan A. DeCastro", "Jonathan S. Litt"]
+publisher = "NASA Glenn Research Center / U.S. Army Research Laboratory"
+publication_year = 2007
+report_number = "NASA/TM-2007-215026"
+source_url = "https://ntrs.nasa.gov/citations/20070034949"
+download_url = "https://ntrs.nasa.gov/api/citations/20070034949/downloads/20070034949.pdf"
+format = "pdf"
+page_count = 47
+included_pdf_pages = ["7-12", "27-31"]
+size_bytes = 1199242
+sha256 = "bc336b255603699c7a0b40fea5004f33363223fb7391995ddf8445acd1951a9b"
+authority = "primary"
+access_status = "Unclassified-Unlimited"
+roles = ["simulator_architecture", "engine_variables", "fault_and_deterioration_context"]
+scope = "Describes C-MAPSS version 1, engine components, inputs/outputs, operating conditions, faults and deterioration."
+limitations = "Does not define the FD001 column order, RUL labels or maintenance actions; MATLAB/GUI instructions are dated."
+
+[[documents]]
+id = "cmapss_prognostics_review_2014"
+path = "docs/Review of Algorithmic Approaches on CMAPSS — NASA.pdf"
+title = "Review and Analysis of Algorithmic Approaches Developed for Prognostics on CMAPSS Dataset"
+authors = ["Emmanuel Ramasso", "Abhinav Saxena"]
+publisher = "PHM Society / NASA Ames Research Center"
+publication_year = 2014
+source_url = "https://ntrs.nasa.gov/citations/20150007677"
+download_url = "https://ntrs.nasa.gov/api/citations/20150007677/downloads/20150007677.pdf"
+format = "pdf"
+page_count = 11
+included_pdf_pages = ["1-8"]
+excluded_pdf_pages = [9, 10, 11]
+size_bytes = 177310
+sha256 = "5b42232526e3f3ffb7167a712f609c5ebc49b58d58d4536929ec18ffbc466c74"
+authority = "secondary"
+access_status = "Creative Commons Attribution 3.0 United States"
+roles = ["dataset_comparison", "prognostics_methods", "evaluation_guidance"]
+scope = "Distinguishes the four FD datasets from PHM08 and reviews evaluation practices for C-MAPSS prognostics."
+limitations = "A review of published approaches, not an operating or maintenance manual."
+
+[[documents]]
+id = "faa_engine_maintenance_ch10"
+path = "docs/FAA — Engine Maintenance & Operation.pdf"
+title = "Aviation Maintenance Technician Handbook - Powerplant, Chapter 10: Engine Maintenance & Operation"
+publisher = "U.S. Federal Aviation Administration"
+publication_year = 2023
+report_number = "FAA-H-8083-32B"
+source_url = "https://www.faa.gov/regulationspolicies/handbooksmanuals/aviation/faa-h-8083-32b-chapter-10-engine-maintenance"
+download_url = "https://www.faa.gov/sites/faa.gov/files/12_amtp_ch10_0.pdf"
+format = "pdf"
+page_count = 65
+included_pdf_pages = ["44-65"]
+size_bytes = 14227775
+sha256 = "55964e589d96f657812938d932280d0502d9055c387ea07707cbc9777d3cfec8"
+authority = "primary"
+access_status = "public FAA publication"
+roles = ["generic_engine_maintenance", "inspection", "engine_operation"]
+scope = "Provides general aviation engine inspection, maintenance and operating context, including turbine-engine topics."
+limitations = "Not specific to C-MAPSS, FD001 or any particular engine model; it cannot justify a model-specific repair prescription."
+not_cmapss_specific = true

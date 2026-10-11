@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "model": "lstm",
+  "model_artifact": "lstm.pt",
+  "model_sha256": "1e6e9aa463366c4b2ac849475701b0f35c6d7dab0eee71937c687d45226926f0",
+  "preprocessor_artifact": "preprocessor.joblib",
+  "preprocessor_sha256": "37764f74f1112cab8b285a61ad60a24baf585119ec71d0b616e91cc1fcf5aca1",
+  "selection_evidence": {
+    "path": "reports/fd001/models/experiment_summary.json",
+    "sha256": "39fbc3d774f3becb6c00133456fcab16ee2e8de61b07c36088898248b993ad2a",
+    "validation_rmse": 23.19616700161286
+  },
+  "training": {
+    "source": "CMAPSSData/train_FD001.txt",
+    "units": 100,
+    "fixed_epochs": 6,
+    "seed": 2026,
+    "official_test_used": false
+  },
+  "input_contract": {
+    "required_columns": [
+      "unit_id",
+      "cycle",
+      "sensor_2",
+      "sensor_3",
+      "sensor_4",
+      "sensor_6",
+      "sensor_7",
+      "sensor_8",
+      "sensor_9",
+      "sensor_11",
+      "sensor_12",
+      "sensor_13",
+      "sensor_14",
+      "sensor_15",
+      "sensor_17",
+      "sensor_20",
+      "sensor_21"
+    ],
+    "accepted_cmapss_sensor_columns": [
+      "sensor_1",
+      "sensor_2",
+      "sensor_3",
+      "sensor_4",
+      "sensor_5",
+      "sensor_6",
+      "sensor_7",
+      "sensor_8",
+      "sensor_9",
+      "sensor_10",
+      "sensor_11",
+      "sensor_12",
+      "sensor_13",
+      "sensor_14",
+      "sensor_15",
+      "sensor_16",
+      "sensor_17",
+      "sensor_18",
+      "sensor_19",
+      "sensor_20",
+      "sensor_21"
+    ],
+    "feature_names": [
+      "sensor_2",
+      "sensor_3",
+      "sensor_4",
+      "sensor_6",
+      "sensor_7",
+      "sensor_8",
+      "sensor_9",
+      "sensor_11",
+      "sensor_12",
+      "sensor_13",
+      "sensor_14",
+      "sensor_15",
+      "sensor_17",
+      "sensor_20",
+      "sensor_21"
+    ],
+    "window_length": 30,
+    "padding": "left_repeat_first_observation",
+    "observed_length_required": true
+  },
+  "official_test_metrics": {
+    "mae": 14.23260968208313,
+    "rmse": 20.985744254391562,
+    "bias": 7.849594297409058,
+    "p90_absolute_error": 36.439231872558615,
+    "overestimate_rate": 0.73,
+    "nasa_score": 14432.738145307392
+  }
+}

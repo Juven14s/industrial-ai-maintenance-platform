@@ -1,0 +1,40 @@
+# Local Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
+
+# Raw data and regenerable arrays are kept locally. The two small public
+# documents required to rebuild the RAG index in Docker remain versioned.
+CMAPSSData/*
+!CMAPSSData/readme.txt
+!CMAPSSData/Damage Propagation Modeling.pdf
+data/processed/
+tmp/
+
+# Machine-local Jupyter/Matplotlib runtime state
+.runtime/
+
+# Credentials and later experiment/model outputs
+.env
+.env.*
+!.env.example
+mlruns/
+artifacts/*
+!artifacts/models/
+artifacts/models/*
+!artifacts/models/FD001/
+artifacts/models/FD001/*
+!artifacts/models/FD001/final/
+!artifacts/models/FD001/safety_v2/
+
+# Generated documentation and browser-only visualizations
+docs/*.html
+docs/*_files/
+outputs/

@@ -1,0 +1,512 @@
+{
+  "costs": {
+    "downtime_per_cycle": 50,
+    "early_per_cycle": 10,
+    "late_per_cycle": 250,
+    "preventive_default": 500,
+    "unscheduled": 20000
+  },
+  "criticality_weights": {
+    "high": 4,
+    "low": 1,
+    "medium": 2
+  },
+  "evaluation_date": "2026-10-09",
+  "planning_version": "maintenance-planning-v1",
+  "scenarios": [
+    {
+      "comparison": {
+        "absolute_savings": 2570,
+        "heuristic": {
+          "assignments": [
+            {
+              "cost": 630,
+              "criticality": "low",
+              "deadline_cycle": 12,
+              "earliness_cycles": 10,
+              "end_cycle": 2,
+              "maintenance_duration": 2,
+              "preventive_cost": 430,
+              "start_cycle": 0,
+              "tardiness_cycles": 0,
+              "technicians_required": 1,
+              "unit_id": 104
+            },
+            {
+              "cost": 850,
+              "criticality": "high",
+              "deadline_cycle": 5,
+              "earliness_cycles": 0,
+              "end_cycle": 5,
+              "maintenance_duration": 3,
+              "preventive_cost": 700,
+              "start_cycle": 2,
+              "tardiness_cycles": 0,
+              "technicians_required": 2,
+              "unit_id": 101
+            },
+            {
+              "cost": 1170,
+              "criticality": "medium",
+              "deadline_cycle": 7,
+              "earliness_cycles": 0,
+              "end_cycle": 8,
+              "maintenance_duration": 3,
+              "preventive_cost": 520,
+              "start_cycle": 5,
+              "tardiness_cycles": 1,
+              "technicians_required": 1,
+              "unit_id": 102
+            },
+            {
+              "cost": 3880,
+              "criticality": "high",
+              "deadline_cycle": 9,
+              "earliness_cycles": 0,
+              "end_cycle": 12,
+              "maintenance_duration": 4,
+              "preventive_cost": 680,
+              "start_cycle": 8,
+              "tardiness_cycles": 3,
+              "technicians_required": 2,
+              "unit_id": 103
+            },
+            {
+              "cost": 1150,
+              "criticality": "medium",
+              "deadline_cycle": 14,
+              "earliness_cycles": 0,
+              "end_cycle": 15,
+              "maintenance_duration": 3,
+              "preventive_cost": 500,
+              "start_cycle": 12,
+              "tardiness_cycles": 1,
+              "technicians_required": 1,
+              "unit_id": 105
+            }
+          ],
+          "deferred_unit_ids": [],
+          "method": "heuristic",
+          "objective_cost": 7680,
+          "planning_version": "maintenance-planning-v1",
+          "solve_time_seconds": 0.00022779987193644047,
+          "solver_status": "greedy_deadline_priority",
+          "status": "feasible",
+          "unscheduled_unit_ids": []
+        },
+        "optimized": {
+          "assignments": [
+            {
+              "cost": 870,
+              "criticality": "high",
+              "deadline_cycle": 5,
+              "earliness_cycles": 2,
+              "end_cycle": 3,
+              "maintenance_duration": 3,
+              "preventive_cost": 700,
+              "start_cycle": 0,
+              "tardiness_cycles": 0,
+              "technicians_required": 2,
+              "unit_id": 101
+            },
+            {
+              "cost": 680,
+              "criticality": "medium",
+              "deadline_cycle": 7,
+              "earliness_cycles": 1,
+              "end_cycle": 6,
+              "maintenance_duration": 3,
+              "preventive_cost": 520,
+              "start_cycle": 3,
+              "tardiness_cycles": 0,
+              "technicians_required": 1,
+              "unit_id": 102
+            },
+            {
+              "cost": 1880,
+              "criticality": "high",
+              "deadline_cycle": 9,
+              "earliness_cycles": 0,
+              "end_cycle": 10,
+              "maintenance_duration": 4,
+              "preventive_cost": 680,
+              "start_cycle": 6,
+              "tardiness_cycles": 1,
+              "technicians_required": 2,
+              "unit_id": 103
+            },
+            {
+              "cost": 530,
+              "criticality": "low",
+              "deadline_cycle": 12,
+              "earliness_cycles": 0,
+              "end_cycle": 12,
+              "maintenance_duration": 2,
+              "preventive_cost": 430,
+              "start_cycle": 10,
+              "tardiness_cycles": 0,
+              "technicians_required": 1,
+              "unit_id": 104
+            },
+            {
+              "cost": 1150,
+              "criticality": "medium",
+              "deadline_cycle": 14,
+              "earliness_cycles": 0,
+              "end_cycle": 15,
+              "maintenance_duration": 3,
+              "preventive_cost": 500,
+              "start_cycle": 12,
+              "tardiness_cycles": 1,
+              "technicians_required": 1,
+              "unit_id": 105
+            }
+          ],
+          "deferred_unit_ids": [],
+          "method": "cp_sat",
+          "objective_cost": 5110,
+          "planning_version": "maintenance-planning-v1",
+          "solve_time_seconds": 0.010220000054687262,
+          "solver_status": "optimal",
+          "status": "optimal",
+          "unscheduled_unit_ids": []
+        },
+        "relative_savings": 0.3346354166666667,
+        "scenario_id": "constrained_load"
+      },
+      "scenario": {
+        "description": "Plusieurs échéances proches avec une équipe limitée.",
+        "engines": [
+          {
+            "conservative_rul": 5.0,
+            "criticality": "high",
+            "maintenance_duration": 3,
+            "preventive_cost": 700,
+            "technicians_required": 2,
+            "unit_id": 101
+          },
+          {
+            "conservative_rul": 7.0,
+            "criticality": "medium",
+            "maintenance_duration": 3,
+            "preventive_cost": 520,
+            "technicians_required": 1,
+            "unit_id": 102
+          },
+          {
+            "conservative_rul": 9.0,
+            "criticality": "high",
+            "maintenance_duration": 4,
+            "preventive_cost": 680,
+            "technicians_required": 2,
+            "unit_id": 103
+          },
+          {
+            "conservative_rul": 12.0,
+            "criticality": "low",
+            "maintenance_duration": 2,
+            "preventive_cost": 430,
+            "technicians_required": 1,
+            "unit_id": 104
+          },
+          {
+            "conservative_rul": 14.0,
+            "criticality": "medium",
+            "maintenance_duration": 3,
+            "preventive_cost": 500,
+            "technicians_required": 1,
+            "unit_id": 105
+          }
+        ],
+        "planning_horizon": 20,
+        "scenario_id": "constrained_load",
+        "technicians": 2,
+        "workshop_capacity": 1
+      }
+    },
+    {
+      "comparison": {
+        "absolute_savings": null,
+        "heuristic": {
+          "assignments": [
+            {
+              "cost": 750,
+              "criticality": "high",
+              "deadline_cycle": 3,
+              "earliness_cycles": 0,
+              "end_cycle": 3,
+              "maintenance_duration": 3,
+              "preventive_cost": 600,
+              "start_cycle": 0,
+              "tardiness_cycles": 0,
+              "technicians_required": 1,
+              "unit_id": 201
+            },
+            {
+              "cost": 2750,
+              "criticality": "high",
+              "deadline_cycle": 4,
+              "earliness_cycles": 0,
+              "end_cycle": 6,
+              "maintenance_duration": 3,
+              "preventive_cost": 600,
+              "start_cycle": 3,
+              "tardiness_cycles": 2,
+              "technicians_required": 1,
+              "unit_id": 202
+            }
+          ],
+          "deferred_unit_ids": [],
+          "method": "heuristic",
+          "objective_cost": 43500,
+          "planning_version": "maintenance-planning-v1",
+          "solve_time_seconds": 4.229997284710407e-05,
+          "solver_status": "greedy_deadline_priority",
+          "status": "partial",
+          "unscheduled_unit_ids": [
+            203
+          ]
+        },
+        "optimized": {
+          "assignments": [],
+          "deferred_unit_ids": [],
+          "method": "cp_sat",
+          "objective_cost": null,
+          "planning_version": "maintenance-planning-v1",
+          "solve_time_seconds": 0.0008863001130521297,
+          "solver_status": "infeasible",
+          "status": "infeasible",
+          "unscheduled_unit_ids": [
+            201,
+            202,
+            203
+          ]
+        },
+        "relative_savings": null,
+        "scenario_id": "infeasible_load"
+      },
+      "scenario": {
+        "description": "Charge volontairement impossible à terminer dans l'horizon.",
+        "engines": [
+          {
+            "conservative_rul": 3.0,
+            "criticality": "high",
+            "maintenance_duration": 3,
+            "preventive_cost": 600,
+            "technicians_required": 1,
+            "unit_id": 201
+          },
+          {
+            "conservative_rul": 4.0,
+            "criticality": "high",
+            "maintenance_duration": 3,
+            "preventive_cost": 600,
+            "technicians_required": 1,
+            "unit_id": 202
+          },
+          {
+            "conservative_rul": 5.0,
+            "criticality": "medium",
+            "maintenance_duration": 3,
+            "preventive_cost": 500,
+            "technicians_required": 1,
+            "unit_id": 203
+          }
+        ],
+        "planning_horizon": 6,
+        "scenario_id": "infeasible_load",
+        "technicians": 1,
+        "workshop_capacity": 1
+      }
+    },
+    {
+      "comparison": {
+        "absolute_savings": 0,
+        "heuristic": {
+          "assignments": [
+            {
+              "cost": 750,
+              "criticality": "high",
+              "deadline_cycle": 8,
+              "earliness_cycles": 0,
+              "end_cycle": 8,
+              "maintenance_duration": 2,
+              "preventive_cost": 650,
+              "start_cycle": 6,
+              "tardiness_cycles": 0,
+              "technicians_required": 2,
+              "unit_id": 3
+            },
+            {
+              "cost": 620,
+              "criticality": "medium",
+              "deadline_cycle": 11,
+              "earliness_cycles": 0,
+              "end_cycle": 11,
+              "maintenance_duration": 2,
+              "preventive_cost": 520,
+              "start_cycle": 9,
+              "tardiness_cycles": 0,
+              "technicians_required": 1,
+              "unit_id": 18
+            },
+            {
+              "cost": 650,
+              "criticality": "medium",
+              "deadline_cycle": 15,
+              "earliness_cycles": 0,
+              "end_cycle": 15,
+              "maintenance_duration": 3,
+              "preventive_cost": 500,
+              "start_cycle": 12,
+              "tardiness_cycles": 0,
+              "technicians_required": 1,
+              "unit_id": 7
+            },
+            {
+              "cost": 550,
+              "criticality": "low",
+              "deadline_cycle": 25,
+              "earliness_cycles": 0,
+              "end_cycle": 25,
+              "maintenance_duration": 2,
+              "preventive_cost": 450,
+              "start_cycle": 23,
+              "tardiness_cycles": 0,
+              "technicians_required": 1,
+              "unit_id": 12
+            }
+          ],
+          "deferred_unit_ids": [
+            21
+          ],
+          "method": "heuristic",
+          "objective_cost": 2570,
+          "planning_version": "maintenance-planning-v1",
+          "solve_time_seconds": 0.00036550010554492474,
+          "solver_status": "greedy_deadline_priority",
+          "status": "feasible",
+          "unscheduled_unit_ids": []
+        },
+        "optimized": {
+          "assignments": [
+            {
+              "cost": 750,
+              "criticality": "high",
+              "deadline_cycle": 8,
+              "earliness_cycles": 0,
+              "end_cycle": 8,
+              "maintenance_duration": 2,
+              "preventive_cost": 650,
+              "start_cycle": 6,
+              "tardiness_cycles": 0,
+              "technicians_required": 2,
+              "unit_id": 3
+            },
+            {
+              "cost": 620,
+              "criticality": "medium",
+              "deadline_cycle": 11,
+              "earliness_cycles": 0,
+              "end_cycle": 11,
+              "maintenance_duration": 2,
+              "preventive_cost": 520,
+              "start_cycle": 9,
+              "tardiness_cycles": 0,
+              "technicians_required": 1,
+              "unit_id": 18
+            },
+            {
+              "cost": 650,
+              "criticality": "medium",
+              "deadline_cycle": 15,
+              "earliness_cycles": 0,
+              "end_cycle": 15,
+              "maintenance_duration": 3,
+              "preventive_cost": 500,
+              "start_cycle": 12,
+              "tardiness_cycles": 0,
+              "technicians_required": 1,
+              "unit_id": 7
+            },
+            {
+              "cost": 550,
+              "criticality": "low",
+              "deadline_cycle": 25,
+              "earliness_cycles": 0,
+              "end_cycle": 25,
+              "maintenance_duration": 2,
+              "preventive_cost": 450,
+              "start_cycle": 23,
+              "tardiness_cycles": 0,
+              "technicians_required": 1,
+              "unit_id": 12
+            }
+          ],
+          "deferred_unit_ids": [
+            21
+          ],
+          "method": "cp_sat",
+          "objective_cost": 2570,
+          "planning_version": "maintenance-planning-v1",
+          "solve_time_seconds": 0.0037248998414725065,
+          "solver_status": "optimal",
+          "status": "optimal",
+          "unscheduled_unit_ids": []
+        },
+        "relative_savings": 0.0,
+        "scenario_id": "normal_load"
+      },
+      "scenario": {
+        "description": "Flotte simulée avec assez de capacité pour toutes les interventions.",
+        "engines": [
+          {
+            "conservative_rul": 8.0,
+            "criticality": "high",
+            "maintenance_duration": 2,
+            "preventive_cost": 650,
+            "technicians_required": 2,
+            "unit_id": 3
+          },
+          {
+            "conservative_rul": 15.0,
+            "criticality": "medium",
+            "maintenance_duration": 3,
+            "preventive_cost": 500,
+            "technicians_required": 1,
+            "unit_id": 7
+          },
+          {
+            "conservative_rul": 25.0,
+            "criticality": "low",
+            "maintenance_duration": 2,
+            "preventive_cost": 450,
+            "technicians_required": 1,
+            "unit_id": 12
+          },
+          {
+            "conservative_rul": 11.0,
+            "criticality": "medium",
+            "maintenance_duration": 2,
+            "preventive_cost": 520,
+            "technicians_required": 1,
+            "unit_id": 18
+          },
+          {
+            "conservative_rul": 35.0,
+            "criticality": "high",
+            "maintenance_duration": 2,
+            "preventive_cost": 700,
+            "technicians_required": 2,
+            "unit_id": 21
+          }
+        ],
+        "planning_horizon": 30,
+        "scenario_id": "normal_load",
+        "technicians": 3,
+        "workshop_capacity": 2
+      }
+    }
+  ],
+  "schema_version": 1
+}

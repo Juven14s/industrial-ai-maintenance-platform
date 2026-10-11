@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "executed_on": "2026-10-07",
+  "environment": {
+    "operating_system": "Windows",
+    "python": "3.12.10",
+    "streamlit": "1.65.0",
+    "device": "cpu"
+  },
+  "services": {
+    "api_url": "http://127.0.0.1:8000",
+    "api_health_status": 200,
+    "dashboard_url": "http://127.0.0.1:8501",
+    "dashboard_health_status": 200,
+    "dashboard_root_status": 200
+  },
+  "interaction": {
+    "title_rendered": true,
+    "api_connected": true,
+    "prediction_button_clicked": true,
+    "result_metrics_rendered": [
+      "RUL de décision",
+      "Estimation centrale",
+      "Fenêtre analysée"
+    ]
+  },
+  "request": {
+    "source": "examples/fd001_demo_engine_3.csv",
+    "unit_id": 3,
+    "history_start_cycle": 1,
+    "last_cycle": 100,
+    "observed_cycles": 100,
+    "target_present": false
+  },
+  "prediction": {
+    "rul_estimate": 97.34269714355469,
+    "rul_conservative": 74.98810258720988,
+    "safety_base_prediction": 78.95684865714281,
+    "safety_margin": 3.9687460699329264,
+    "decision_value": 74.98810258720988,
+    "unit": "cycles",
+    "central_model_version": "lstm-1e6e9aa46336",
+    "safety_model_version": "hgb_quantile_005-6543e7b21788"
+  },
+  "quality": {
+    "dashboard_tests_passed": 29,
+    "full_test_suite_passed": 185,
+    "pytest_failed": 0,
+    "ruff_passed": true,
+    "pip_check_passed": true,
+    "compose_yaml_parsed": true
+  },
+  "docker": {
+    "configuration_present": true,
+    "build_executed": false,
+    "reason": "docker command unavailable in the local environment"
+  }
+}

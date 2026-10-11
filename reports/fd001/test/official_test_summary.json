@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "stage": "FD001 frozen-model official test evaluation",
+  "official_test_read": true,
+  "official_test_used_for_selection": false,
+  "hyperparameters_frozen_before_test": true,
+  "config": {
+    "data": {
+      "train_trajectories": "CMAPSSData/train_FD001.txt",
+      "test_trajectories": "CMAPSSData/test_FD001.txt",
+      "test_targets": "CMAPSSData/RUL_FD001.txt"
+    },
+    "selection": {
+      "summary": "reports/fd001/models/experiment_summary.json",
+      "summary_sha256": "39fbc3d774f3becb6c00133456fcab16ee2e8de61b07c36088898248b993ad2a",
+      "model": "lstm",
+      "fixed_epochs": 6
+    },
+    "output": {
+      "artifact_directory": "artifacts/models/FD001/final",
+      "report_directory": "reports/fd001/test"
+    },
+    "tracking": {
+      "directory": "mlruns",
+      "experiment_name": "fd001-rul-official-test"
+    },
+    "runtime": {
+      "num_threads": 4
+    }
+  },
+  "config_sha256": "e92436ada0d85045e3c0d602aa6ac1d3e7018cf23b5d60c307beeeba89728754",
+  "selection": {
+    "summary": "reports/fd001/models/experiment_summary.json",
+    "summary_sha256": "39fbc3d774f3becb6c00133456fcab16ee2e8de61b07c36088898248b993ad2a",
+    "model": "lstm",
+    "validation_metrics": {
+      "mae": 18.377761363983154,
+      "rmse": 23.19616700161286,
+      "bias": 6.801111125946045,
+      "p90_absolute_error": 35.39176101684573,
+      "overestimate_rate": 0.65,
+      "nasa_score": 342.9495689165579
+    },
+    "fixed_epochs": 6
+  },
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "2.3.3",
+      "scikit-learn": "1.9.0",
+      "torch": "2.14.1",
+      "mlflow": "3.16.1",
+      "matplotlib": "3.11.1",
+      "joblib": "1.6.0"
+    },
+    "device": "cpu",
+    "torch_threads": 4
+  },
+  "data": {
+    "training_units": 100,
+    "test_units": 100,
+    "eligible_training_windows": 18631,
+    "test_samples": 100,
+    "window_length": 30,
+    "sensor_count": 15,
+    "test_target_min": 7.0,
+    "test_target_max": 145.0,
+    "test_targets_at_most_30": 25,
+    "train_sha256": "963b5e22825b34d8b21c69e1aeb4af3e647050eb672ee8834ba4b5d91d2de0f8",
+    "test_sha256": "3cda7109ce17bafb5443f2ac926cfcf88154b941b8c4cf95eb55d1ddd6f52851",
+    "test_targets_sha256": "a19c8ec94931949d0485bdc35118206e9c81c4547b422efb9cf86f4ceddbceca",
+    "feature_names": [
+      "sensor_2",
+      "sensor_3",
+      "sensor_4",
+      "sensor_6",
+      "sensor_7",
+      "sensor_8",
+      "sensor_9",
+      "sensor_11",
+      "sensor_12",
+      "sensor_13",
+      "sensor_14",
+      "sensor_15",
+      "sensor_17",
+      "sensor_20",
+      "sensor_21"
+    ]
+  },
+  "official_test_metrics": {
+    "mae": 14.23260968208313,
+    "rmse": 20.985744254391562,
+    "bias": 7.849594297409058,
+    "p90_absolute_error": 36.439231872558615,
+    "overestimate_rate": 0.73,
+    "nasa_score": 14432.738145307392
+  },
+  "runtime": {
+    "training_seconds": 12.401105999946594,
+    "inference_seconds": 0.005622499855235219,
+    "inference_ms_per_engine": 0.05622499855235219,
+    "model_size_bytes": 28721,
+    "total_seconds": 14.404574200045317
+  },
+  "mlflow": {
+    "backend": "sqlite",
+    "database": "mlruns/mlflow.db",
+    "tracking_uri": "sqlite:///./mlruns/mlflow.db",
+    "experiment_name": "fd001-rul-official-test",
+    "experiment_id": "2",
+    "run_id": "e4f4f7ad71e84510b5fe8de38724e531"
+  },
+  "implementation": [
+    {
+      "path": "src/industrial_maintenance/data.py",
+      "sha256": "ee0d4935389def9c65b252240f856269bc96b14d520932d324f0ba4afdcceae1"
+    },
+    {
+      "path": "src/industrial_maintenance/lstm.py",
+      "sha256": "feda22ee120b44be5cdc329f7c2dfd7fa35fbfd06f1639734ef107e6257dfd6e"
+    },
+    {
+      "path": "src/industrial_maintenance/evaluate.py",
+      "sha256": "37c19faf69435b1688f9551f67730748b0bd0ff1d785e2e328b87611de14de9f"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/models/FD001/final/lstm.pt",
+      "sha256": "1e6e9aa463366c4b2ac849475701b0f35c6d7dab0eee71937c687d45226926f0"
+    },
+    {
+      "path": "artifacts/models/FD001/final/preprocessor.joblib",
+      "sha256": "37764f74f1112cab8b285a61ad60a24baf585119ec71d0b616e91cc1fcf5aca1"
+    },
+    {
+      "path": "artifacts/models/FD001/final/final_model.json",
+      "sha256": "2e27623eb47c87eb3099c0bce8293ab010a030b5b174c5790f6549d1b562e16c"
+    },
+    {
+      "path": "reports/fd001/test/official_test_predictions.csv",
+      "sha256": "8710b1d68cb37d8ee4d2eb229e5065e0c1fb7e403d124cdd69224972328b9c2b"
+    },
+    {
+      "path": "reports/fd001/test/official_test_metrics.json",
+      "sha256": "584228a92047c95c2e9a51c4469b09a75498af84a23c5810f1f2f3575136fc59"
+    },
+    {
+      "path": "reports/fd001/test/final_training_history.csv",
+      "sha256": "b87a7aa94d5c59160872f92d58b3a5b1e78291cd50fbd1f80d57bfb4f89122e4"
+    },
+    {
+      "path": "reports/fd001/test/OFFICIAL_TEST_EVALUATION.md",
+      "sha256": "6e2a41fca5cc7d933e71b56b2cc591874a1d5496939acdd3888916ab51cab883"
+    },
+    {
+      "path": "reports/fd001/test/figures/official_test_predictions.png",
+      "sha256": "488650806f70d5417a538b24005917209e1584ce3971c6bd071bda0273d92a04"
+    }
+  ]
+}

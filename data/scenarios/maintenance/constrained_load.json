@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "scenario_id": "constrained_load",
+  "description": "Plusieurs échéances proches avec une équipe limitée.",
+  "planning_horizon": 20,
+  "technicians": 2,
+  "workshop_capacity": 1,
+  "engines": [
+    {"unit_id": 101, "conservative_rul": 5.0, "maintenance_duration": 3, "technicians_required": 2, "criticality": "high", "preventive_cost": 700},
+    {"unit_id": 102, "conservative_rul": 7.0, "maintenance_duration": 3, "technicians_required": 1, "criticality": "medium", "preventive_cost": 520},
+    {"unit_id": 103, "conservative_rul": 9.0, "maintenance_duration": 4, "technicians_required": 2, "criticality": "high", "preventive_cost": 680},
+    {"unit_id": 104, "conservative_rul": 12.0, "maintenance_duration": 2, "technicians_required": 1, "criticality": "low", "preventive_cost": 430},
+    {"unit_id": 105, "conservative_rul": 14.0, "maintenance_duration": 3, "technicians_required": 1, "criticality": "medium", "preventive_cost": 500}
+  ]
+}

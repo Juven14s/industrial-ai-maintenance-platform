@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "stage": "FD001 preparation; no predictive model fitted",
+  "source": {
+    "file": "train_FD001.txt",
+    "sha256": "963b5e22825b34d8b21c69e1aeb4af3e647050eb672ee8834ba4b5d91d2de0f8"
+  },
+  "official_test_read": false,
+  "parameters": {
+    "data": {
+      "raw_dir": "CMAPSSData",
+      "subset": "FD001"
+    },
+    "split": {
+      "validation_fraction": 0.2,
+      "seed": 42
+    },
+    "validation": {
+      "seed": 43,
+      "min_observed_cycles": 20
+    },
+    "windows": {
+      "length": 30
+    },
+    "output": {
+      "directory": "data/processed/FD001",
+      "report_dir": "reports/fd001"
+    }
+  },
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "2.3.3",
+      "scikit-learn": "1.9.0",
+      "matplotlib": "3.11.1",
+      "joblib": "1.6.0"
+    }
+  },
+  "implementation": {
+    "package_version": "0.1.0",
+    "files": [
+      {
+        "path": "src/industrial_maintenance/data.py",
+        "sha256": "06b51c05f82c3ba44c2986e10bf1235120fdc552fe3bff630d94016366b577c9"
+      },
+      {
+        "path": "src/industrial_maintenance/plots.py",
+        "sha256": "e6c7e0cba558a633840b66755c88fb4812f2152907dc1cd6edde1d952d2e4d61"
+      },
+      {
+        "path": "src/industrial_maintenance/prepare.py",
+        "sha256": "233062d4bc3b92824eff38d8b45ef39b203686d72ed9d0c4f5e98d5dd7d11593"
+      }
+    ]
+  },
+  "data": {
+    "source_rows": 20631,
+    "learning_units": 80,
+    "validation_units": 20,
+    "learning_rows": 16779,
+    "validation_full_rows": 3852,
+    "validation_observed_rows": 2037,
+    "learning_lifetime_range": [
+      128,
+      362
+    ]
+  },
+  "preprocessing": {
+    "feature_names": [
+      "sensor_2",
+      "sensor_3",
+      "sensor_4",
+      "sensor_6",
+      "sensor_7",
+      "sensor_8",
+      "sensor_9",
+      "sensor_11",
+      "sensor_12",
+      "sensor_13",
+      "sensor_14",
+      "sensor_15",
+      "sensor_17",
+      "sensor_20",
+      "sensor_21"
+    ],
+    "dropped_features": [
+      "sensor_1",
+      "sensor_5",
+      "sensor_10",
+      "sensor_16",
+      "sensor_18",
+      "sensor_19"
+    ],
+    "selection": "Remove exact constants on learning engines only",
+    "normalization": "StandardScaler, fitted on learning engines only (ddof=0)",
+    "mean": [
+      642.6814172477501,
+      1590.5250646641634,
+      1408.954103939448,
+      21.60980272960248,
+      553.3662989451099,
+      2388.0968389057753,
+      9064.848749031527,
+      47.54125871625245,
+      521.4108731152036,
+      2388.096515882949,
+      8143.364420406459,
+      8.442091697955778,
+      393.2091900590023,
+      38.81593420346862,
+      23.289709619166814
+    ],
+    "scale": [
+      0.5000813389855251,
+      6.121097238943066,
+      8.988404607656955,
+      0.0013906071930880968,
+      0.8879956908067922,
+      0.07054720246281858,
+      21.033950657675167,
+      0.2672358877879984,
+      0.7388285906256598,
+      0.0715008651151056,
+      18.11991792656144,
+      0.03749169366935334,
+      1.5485804371546323,
+      0.18084603462312224,
+      0.10840601963232657
+    ],
+    "variance": [
+      0.2500813456015557,
+      37.467831408596425,
+      80.79141739094878,
+      1.933788365468355e-06,
+      0.7885363468914321,
+      0.004976907775329915,
+      442.4270802695136,
+      0.07141501972183968,
+      0.5458676863258988,
+      0.005112373712208526,
+      328.3314256653226,
+      0.0014056270941966295,
+      2.3981013703380323,
+      0.032705288238907525,
+      0.011751865092524374
+    ],
+    "fit_rows": 16779,
+    "padding": "Left-repeat the first observed measurement; record true observed length"
+  },
+  "windows": {
+    "length": 30,
+    "learning_shape": [
+      16779,
+      30,
+      15
+    ],
+    "validation_shape": [
+      20,
+      30,
+      15
+    ],
+    "learning_padded_samples": 2320,
+    "validation_padded_samples": 2
+  },
+  "artifacts": [
+    {
+      "path": "data/processed/FD001/learning.csv",
+      "sha256": "583b571e5f6cb59f08b7e0014f9cc86ec54695065eff383e00c2dbe106fa5ad7"
+    },
+    {
+      "path": "data/processed/FD001/validation_observed.csv",
+      "sha256": "625e5601b7a154834f853a401eba47971d9225f4990f1a0114be857f6146e4f1"
+    },
+    {
+      "path": "data/processed/FD001/learning_windows.npz",
+      "sha256": "24a90edd76c6b2be097e2e506818f6b056b607fee08bb1bd61935debc6728f79"
+    },
+    {
+      "path": "data/processed/FD001/validation_windows.npz",
+      "sha256": "8346d9f823623563906f7c46fd665f70702c2126cdd712dfd2d7d33bd599b84c"
+    },
+    {
+      "path": "data/processed/FD001/preprocessor.joblib",
+      "sha256": "a21866ba6e89d22b718a589db6cc14518bf31c22e8b99660da27a5207b8c7273"
+    },
+    {
+      "path": "reports/fd001/splits.json",
+      "sha256": "d1dcac68bb1717d306a74168848a42a8005fe2b965faf127c81260989fc16d9b"
+    },
+    {
+      "path": "reports/fd001/preprocessing.json",
+      "sha256": "2dba1d70fb1193a4a127252ad8107d377d00334fc61df8a56db97fc393465468"
+    },
+    {
+      "path": "reports/fd001/validation_cutoffs.csv",
+      "sha256": "aa38aa12536414f031619f442b04309dedf3cc2e0f3e4d5d3d20355ae40b7582"
+    },
+    {
+      "path": "reports/fd001/learning_sensor_statistics.csv",
+      "sha256": "e3bc92630b6b350b80cec1c619005eb3c19f8f99eb8c0268393eaf91aff0fc9b"
+    },
+    {
+      "path": "reports/fd001/PREPARATION_FD001.md",
+      "sha256": "be5517b07e1aef58f4345c98e4643bb4ecd374c6a235c2bd2990c814f4f36d67"
+    },
+    {
+      "path": "reports/fd001/figures/learning_lifetimes.png",
+      "sha256": "ca568cae7329238aea97dd0bebea76a36b054059c5c5ef5a92c220e5cac160f4"
+    },
+    {
+      "path": "reports/fd001/figures/learning_trajectories.png",
+      "sha256": "5867498ea0cfa417239a363533d1f6e8f9315dea4fe2fa25293d56f4702def58"
+    }
+  ]
+}

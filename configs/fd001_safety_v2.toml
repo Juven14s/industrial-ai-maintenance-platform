@@ -1,0 +1,59 @@
+# Safety-oriented model selection using train_FD001.txt only.
+# The official test files and their RUL targets are deliberately absent.
+
+[data]
+train_trajectories = "CMAPSSData/train_FD001.txt"
+
+[output]
+artifact_directory = "artifacts/models/FD001/safety_v2"
+report_directory = "reports/fd001/safety_v2"
+
+[tracking]
+directory = "mlruns"
+experiment_name = "fd001-rul-safety-v2"
+
+[validation]
+seed = 2027
+folds = 5
+window_length = 30
+minimum_end_cycle = 20
+horizons = [5, 10, 20, 30, 50, 75, 100, 125, 150]
+
+[risk]
+overestimate_cost = 5.0
+underestimate_cost = 1.0
+maximum_overestimate_rate = 0.20
+dangerous_overestimate_margin = 10.0
+
+[random_forest_reference]
+n_estimators = 200
+max_depth = 12
+min_samples_leaf = 5
+max_features = 0.5
+
+[[quantile_boosting.candidates]]
+name = "hgb_quantile_005"
+quantile = 0.05
+learning_rate = 0.05
+max_iter = 250
+max_leaf_nodes = 15
+min_samples_leaf = 20
+l2_regularization = 1.0
+
+[[quantile_boosting.candidates]]
+name = "hgb_quantile_0075"
+quantile = 0.075
+learning_rate = 0.05
+max_iter = 250
+max_leaf_nodes = 15
+min_samples_leaf = 20
+l2_regularization = 1.0
+
+[[quantile_boosting.candidates]]
+name = "hgb_quantile_010"
+quantile = 0.10
+learning_rate = 0.05
+max_iter = 250
+max_leaf_nodes = 15
+min_samples_leaf = 20
+l2_regularization = 1.0

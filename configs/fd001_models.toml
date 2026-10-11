@@ -1,0 +1,57 @@
+# Milestone 2: validation-only comparison on the artifacts prepared from train_FD001.txt.
+# The official test and RUL files are not read by this experiment.
+
+[data]
+directory = "data/processed/FD001"
+learning_windows = "learning_windows.npz"
+validation_windows = "validation_windows.npz"
+preprocessor = "preprocessor.joblib"
+
+[output]
+artifact_directory = "artifacts/models/FD001"
+report_directory = "reports/fd001/models"
+
+[tracking]
+directory = "mlruns"
+experiment_name = "fd001-rul-validation"
+
+[experiment]
+seed = 2026
+balance_engines = true
+primary_metric = "rmse"
+minimum_end_cycle = 20
+exclude_failure_windows = true
+
+[[random_forest.candidates]]
+name = "rf_depth12_leaf5"
+n_estimators = 200
+max_depth = 12
+min_samples_leaf = 5
+max_features = 0.5
+
+[[random_forest.candidates]]
+name = "rf_depth16_leaf5"
+n_estimators = 200
+max_depth = 16
+min_samples_leaf = 5
+max_features = 0.8
+
+[[random_forest.candidates]]
+name = "rf_depth20_leaf10"
+n_estimators = 200
+max_depth = 20
+min_samples_leaf = 10
+max_features = 1.0
+
+[lstm]
+hidden_size = 32
+num_layers = 1
+dropout = 0.0
+batch_size = 256
+learning_rate = 0.001
+weight_decay = 0.00001
+max_epochs = 40
+patience = 7
+min_delta = 0.01
+gradient_clip = 1.0
+num_threads = 4

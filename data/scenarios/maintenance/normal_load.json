@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "scenario_id": "normal_load",
+  "description": "Flotte simulée avec assez de capacité pour toutes les interventions.",
+  "planning_horizon": 30,
+  "technicians": 3,
+  "workshop_capacity": 2,
+  "engines": [
+    {"unit_id": 3, "conservative_rul": 8.0, "maintenance_duration": 2, "technicians_required": 2, "criticality": "high", "preventive_cost": 650},
+    {"unit_id": 7, "conservative_rul": 15.0, "maintenance_duration": 3, "technicians_required": 1, "criticality": "medium", "preventive_cost": 500},
+    {"unit_id": 12, "conservative_rul": 25.0, "maintenance_duration": 2, "technicians_required": 1, "criticality": "low", "preventive_cost": 450},
+    {"unit_id": 18, "conservative_rul": 11.0, "maintenance_duration": 2, "technicians_required": 1, "criticality": "medium", "preventive_cost": 520},
+    {"unit_id": 21, "conservative_rul": 35.0, "maintenance_duration": 2, "technicians_required": 2, "criticality": "high", "preventive_cost": 700}
+  ]
+}

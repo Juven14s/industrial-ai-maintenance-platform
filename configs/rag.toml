@@ -1,0 +1,42 @@
+schema_version = 1
+corpus_manifest = "configs/rag_corpus.toml"
+chunks_path = "data/processed/rag/chunks.jsonl"
+preparation_summary_path = "data/processed/rag/preparation_summary.json"
+index_directory = "data/processed/rag/index"
+query_terms = "configs/rag_query_terms.toml"
+evaluation_questions = "data/evaluation/rag/questions_v1.jsonl"
+evaluation_output = "reports/rag/retrieval_evaluation.json"
+evaluation_report = "reports/rag/RETRIEVAL_EVALUATION.md"
+generation_evaluation_output = "reports/rag/generation_evaluation.json"
+generation_evaluation_report = "reports/rag/GENERATION_EVALUATION.md"
+generation_evaluation_checkpoint = "reports/rag/generation_evaluation_checkpoint.jsonl"
+
+[chunking]
+max_words = 220
+overlap_words = 40
+min_words = 30
+
+[embeddings]
+model_name = "intfloat/multilingual-e5-small"
+model_revision = "960310a7742a4e0a250dd720466bed84fee8caac"
+query_prefix = "query: "
+passage_prefix = "passage: "
+batch_size = 16
+device = "cpu"
+
+[search]
+default_top_k = 5
+max_per_document = 5
+dense_weight = 2.0
+lexical_weight = 1.0
+lexical_score_weight = 0.08
+rrf_k = 60
+
+[generation]
+model_name = "Qwen/Qwen3-1.7B"
+model_revision = "8d4744f9e13072f4920c326350fa81eedb74eae9"
+device = "cpu"
+dtype = "float32"
+max_input_tokens = 4096
+max_new_tokens = 160
+top_k_passages = 5

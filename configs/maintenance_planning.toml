@@ -1,0 +1,26 @@
+schema_version = 1
+default_horizon_cycles = 30
+default_technicians = 3
+default_workshop_capacity = 2
+solver_time_limit_seconds = 10.0
+solver_workers = 1
+solver_random_seed = 42
+scenario_directory = "data/scenarios/maintenance"
+
+[costs]
+preventive_default = 500
+downtime_per_cycle = 50
+early_per_cycle = 10
+late_per_cycle = 250
+unscheduled = 20000
+
+[criticality_weights]
+low = 1
+medium = 2
+high = 4
+
+[outputs]
+evaluation_json = "reports/planning/planning_evaluation.json"
+evaluation_report = "reports/planning/PLANNING_EVALUATION.md"
+comparison_csv = "reports/planning/comparison.csv"
+gantt_figure = "reports/planning/figures/planning_comparison.png"

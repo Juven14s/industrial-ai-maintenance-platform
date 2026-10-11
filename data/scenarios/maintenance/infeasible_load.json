@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "scenario_id": "infeasible_load",
+  "description": "Charge volontairement impossible à terminer dans l'horizon.",
+  "planning_horizon": 6,
+  "technicians": 1,
+  "workshop_capacity": 1,
+  "engines": [
+    {"unit_id": 201, "conservative_rul": 3.0, "maintenance_duration": 3, "technicians_required": 1, "criticality": "high", "preventive_cost": 600},
+    {"unit_id": 202, "conservative_rul": 4.0, "maintenance_duration": 3, "technicians_required": 1, "criticality": "high", "preventive_cost": 600},
+    {"unit_id": 203, "conservative_rul": 5.0, "maintenance_duration": 3, "technicians_required": 1, "criticality": "medium", "preventive_cost": 500}
+  ]
+}

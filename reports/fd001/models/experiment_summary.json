@@ -1,0 +1,272 @@
+{
+  "schema_version": 2,
+  "stage": "FD001 validation comparison; official test not evaluated",
+  "official_test_read": false,
+  "config": {
+    "data": {
+      "directory": "data/processed/FD001",
+      "learning_windows": "learning_windows.npz",
+      "validation_windows": "validation_windows.npz",
+      "preprocessor": "preprocessor.joblib"
+    },
+    "output": {
+      "artifact_directory": "artifacts/models/FD001",
+      "report_directory": "reports/fd001/models"
+    },
+    "tracking": {
+      "directory": "mlruns",
+      "experiment_name": "fd001-rul-validation"
+    },
+    "experiment": {
+      "seed": 2026,
+      "balance_engines": true,
+      "primary_metric": "rmse",
+      "minimum_end_cycle": 20,
+      "exclude_failure_windows": true
+    },
+    "random_forest": {
+      "candidates": [
+        {
+          "name": "rf_depth12_leaf5",
+          "n_estimators": 200,
+          "max_depth": 12,
+          "min_samples_leaf": 5,
+          "max_features": 0.5
+        },
+        {
+          "name": "rf_depth16_leaf5",
+          "n_estimators": 200,
+          "max_depth": 16,
+          "min_samples_leaf": 5,
+          "max_features": 0.8
+        },
+        {
+          "name": "rf_depth20_leaf10",
+          "n_estimators": 200,
+          "max_depth": 20,
+          "min_samples_leaf": 10,
+          "max_features": 1.0
+        }
+      ]
+    },
+    "lstm": {
+      "hidden_size": 32,
+      "num_layers": 1,
+      "dropout": 0.0,
+      "batch_size": 256,
+      "learning_rate": 0.001,
+      "weight_decay": 1e-05,
+      "max_epochs": 40,
+      "patience": 7,
+      "min_delta": 0.01,
+      "gradient_clip": 1.0,
+      "num_threads": 4
+    }
+  },
+  "config_sha256": "e6e798a2c44096cb635be5dfe3f894c1c61dc2d6814ad3c1f7cbe41956c16b79",
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "2.3.3",
+      "scikit-learn": "1.9.0",
+      "torch": "2.14.1",
+      "mlflow": "3.16.1",
+      "matplotlib": "3.11.1",
+      "joblib": "1.6.0"
+    },
+    "torch_threads": 4,
+    "device": "cpu"
+  },
+  "data": {
+    "learning_artifact": "data/processed/FD001/learning_windows.npz",
+    "learning_sha256": "24a90edd76c6b2be097e2e506818f6b056b607fee08bb1bd61935debc6728f79",
+    "validation_artifact": "data/processed/FD001/validation_windows.npz",
+    "validation_sha256": "8346d9f823623563906f7c46fd665f70702c2126cdd712dfd2d7d33bd599b84c",
+    "preprocessor_artifact": "data/processed/FD001/preprocessor.joblib",
+    "preprocessor_sha256": "a21866ba6e89d22b718a589db6cc14518bf31c22e8b99660da27a5207b8c7273",
+    "learning_units": 80,
+    "validation_units": 20,
+    "all_learning_windows": 16779,
+    "eligible_learning_windows": 15179,
+    "validation_samples": 20,
+    "validation_target_min": 7.0,
+    "validation_target_max": 176.0,
+    "validation_targets_at_most_30": 3,
+    "minimum_end_cycle": 20,
+    "exclude_failure_windows": true,
+    "window_length": 30,
+    "sensor_count": 15,
+    "engine_balanced": true
+  },
+  "metrics": [
+    {
+      "model": "lstm",
+      "mae": 18.377761363983154,
+      "rmse": 23.19616700161286,
+      "bias": 6.801111125946045,
+      "p90_absolute_error": 35.39176101684573,
+      "overestimate_rate": 0.65,
+      "nasa_score": 342.9495689165579
+    },
+    {
+      "model": "rf_depth12_leaf5",
+      "mae": 22.8357564964568,
+      "rmse": 30.970035314251334,
+      "bias": 16.568411618488188,
+      "p90_absolute_error": 57.045115442755815,
+      "overestimate_rate": 0.65,
+      "nasa_score": 2110.618995914709
+    },
+    {
+      "model": "rf_depth20_leaf10",
+      "mae": 23.000936583437745,
+      "rmse": 31.148602030020736,
+      "bias": 15.324023670319084,
+      "p90_absolute_error": 58.91856927453302,
+      "overestimate_rate": 0.7,
+      "nasa_score": 1827.6640472172726
+    },
+    {
+      "model": "rf_depth16_leaf5",
+      "mae": 22.3567191678977,
+      "rmse": 31.369739931597714,
+      "bias": 16.05893562186281,
+      "p90_absolute_error": 61.27990614737532,
+      "overestimate_rate": 0.65,
+      "nasa_score": 2538.141842464258
+    },
+    {
+      "model": "baseline_mean",
+      "mae": 36.386874999999996,
+      "rmse": 46.68426235427202,
+      "bias": 4.618750000000006,
+      "p90_absolute_error": 79.73124999999999,
+      "overestimate_rate": 0.55,
+      "nasa_score": 11396.448732189237
+    }
+  ],
+  "selection": {
+    "model": "lstm",
+    "primary_metric": "rmse",
+    "mae": 18.377761363983154,
+    "rmse": 23.19616700161286,
+    "bias": 6.801111125946045,
+    "p90_absolute_error": 35.39176101684573,
+    "overestimate_rate": 0.65,
+    "nasa_score": 342.9495689165579,
+    "artifact": "artifacts/models/FD001/lstm.pt"
+  },
+  "random_forest": {
+    "selected_candidate": "rf_depth12_leaf5",
+    "engineered_feature_count": 106
+  },
+  "lstm": {
+    "best_epoch": 6,
+    "epochs_ran": 13,
+    "stopped_early": true,
+    "target_mean": 95.36875017623476,
+    "target_scale": 61.57610021327618
+  },
+  "mlflow": {
+    "backend": "sqlite",
+    "database": "mlruns/mlflow.db",
+    "tracking_directory": "mlruns",
+    "tracking_uri": "sqlite:///./mlruns/mlflow.db",
+    "experiment_name": "fd001-rul-validation",
+    "experiment_id": "1",
+    "run_ids": {
+      "baseline_mean": "10b8ee4122554bfea6c1a55c7e2c9dde",
+      "rf_depth12_leaf5": "b3f25b91a34a4abca6c63f9366cd6819",
+      "rf_depth16_leaf5": "0df7a318767541c784ba1f28c3e470b2",
+      "rf_depth20_leaf10": "f7f0e03eaf83432f8aebcd30aaa84665",
+      "lstm": "30069a8950d841b0862c0f2d6e9c0f15"
+    }
+  },
+  "implementation": [
+    {
+      "path": "src/industrial_maintenance/classical.py",
+      "sha256": "6798c89abaa34c1648c1d84383722b8191b3328fc74af7ee3af3c3d0e56ebaa5"
+    },
+    {
+      "path": "src/industrial_maintenance/lstm.py",
+      "sha256": "28b79be344722b4cdd734cef84fcd65a9832f6a5a2662a2790db1033371da9de"
+    },
+    {
+      "path": "src/industrial_maintenance/train.py",
+      "sha256": "2bca8a5ffb400faacb420ceb6adbba65754986eeaee508d19c5222e97f8efe52"
+    }
+  ],
+  "duration_seconds": 215.09224650007673,
+  "artifacts": [
+    {
+      "path": "artifacts/models/FD001/baseline.joblib",
+      "sha256": "d1734b9c1303f2adcd44dd591a2a15a818b3f8619330db3c82f74a12d5514ee2"
+    },
+    {
+      "path": "artifacts/models/FD001/rf_depth12_leaf5.joblib",
+      "sha256": "edb532bda6efc2aa354115b244bb67f556b1832027db5de8bb616b51147b963e"
+    },
+    {
+      "path": "artifacts/models/FD001/rf_depth16_leaf5.joblib",
+      "sha256": "ead695478bca9a8ba4d83c85671de8153d7c69c56335fbaa93e3a8b04a64de6e"
+    },
+    {
+      "path": "artifacts/models/FD001/rf_depth20_leaf10.joblib",
+      "sha256": "8cc652fde6d44c5d84ae2ae74eb1d812eb42e63b6f49746d2f26cfa3e364e691"
+    },
+    {
+      "path": "artifacts/models/FD001/random_forest.joblib",
+      "sha256": "edb532bda6efc2aa354115b244bb67f556b1832027db5de8bb616b51147b963e"
+    },
+    {
+      "path": "artifacts/models/FD001/random_forest_features.json",
+      "sha256": "cd6ed4d60ffb1d25a1dbf029e9f1ad6c37065f196929c3e5a528881881126b41"
+    },
+    {
+      "path": "artifacts/models/FD001/lstm.pt",
+      "sha256": "beecbc1a6d7688cf990f72520509b26d7aedd93a12d04caf4e9f7dbb7095afe1"
+    },
+    {
+      "path": "artifacts/models/FD001/selected_model.json",
+      "sha256": "9e050d28969b0e32ed5526baaae13fb1b34f70a3781087dbc66b4a882e06d811"
+    },
+    {
+      "path": "reports/fd001/models/comparison.csv",
+      "sha256": "5c1fd522d7091c0cbb3c7bb2c8260b432412e36dffd2b3cac45502f95425ed6c"
+    },
+    {
+      "path": "reports/fd001/models/validation_predictions.csv",
+      "sha256": "523ebbf9fc36c78e28acf5d7c2a7e2e0c0a3001aeefc0c01b9f90184e07d0dcc"
+    },
+    {
+      "path": "reports/fd001/models/random_forest_feature_importance.csv",
+      "sha256": "2fd122cce5202203fc112afae839d28f9115c9c25ab0dde5a1edda794900aeee"
+    },
+    {
+      "path": "reports/fd001/models/lstm_history.csv",
+      "sha256": "ae1881247f0d2733d23d2dcc38ff71cb96f1339d368369a8434f268e40cb04f5"
+    },
+    {
+      "path": "reports/fd001/models/MODEL_COMPARISON.md",
+      "sha256": "b49b28bfa3a3e9269beaed889ae04e5a35c0629ca1363ebab8c18af808031446"
+    },
+    {
+      "path": "reports/fd001/models/figures/validation_predictions.png",
+      "sha256": "529e281e2bb28b54bd9edd77ada8eef1bae3d2ece3bd1c6f67b2bf92b5b68d48"
+    },
+    {
+      "path": "reports/fd001/models/figures/validation_rmse.png",
+      "sha256": "a4d6667739c206224665096a833de9b65ff9e5c1e40f41449613f6a7b4d0d977"
+    },
+    {
+      "path": "reports/fd001/models/figures/random_forest_importance.png",
+      "sha256": "46f5481489f6eae4211a1cb435b4a9bb25359395ceb8e059e8bf1720bcc0f2e0"
+    },
+    {
+      "path": "reports/fd001/models/figures/lstm_history.png",
+      "sha256": "02146d10c0f20cdcefd3a82ac261e46b1dfb937f4f71dc2370135621a74ff41f"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+.venv
+CMAPSSData
+!CMAPSSData/
+!CMAPSSData/readme.txt
+!CMAPSSData/Damage Propagation Modeling.pdf
+data
+mlruns
+notebooks
+tmp
+**/__pycache__
+**/*.pyc
+reports/**
+!reports/fd001/
+!reports/fd001/safety_v2/
+!reports/fd001/safety_v2/calibration_summary.json
+artifacts/models/FD001/baseline.joblib
+artifacts/models/FD001/random_forest.joblib
+artifacts/models/FD001/lstm.pt
+artifacts/models/FD001/preprocessor.joblib
+artifacts/models/FD001/selected_model.json

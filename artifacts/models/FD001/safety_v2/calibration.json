@@ -1,0 +1,8 @@
+{
+  "method": "cross_fitted_one_sided_residual_margin",
+  "base_model": "hgb_quantile_005",
+  "target_overestimate_rate": 0.05,
+  "safety_margin_cycles": 3.9687460699329264,
+  "prediction_rule": "max(base_prediction - safety_margin_cycles, 0)",
+  "official_test_used": false
+}

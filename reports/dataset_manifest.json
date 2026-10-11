@@ -1,0 +1,284 @@
+{
+  "schema_version": 2,
+  "audited_at_utc": "2026-09-08T10:46:33.0471937Z",
+  "source": "Files provided locally by the user; original download URL not recorded",
+  "upstream_reference": "https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/",
+  "checksum_scope": "Local file fingerprints; not compared with an independently authenticated upstream checksum",
+  "checks": [
+    "Expected file families and motor/label counts",
+    "26 numeric finite fields per train/test row",
+    "Positive integer motor and cycle identifiers",
+    "Contiguous ascending motor identifiers starting at 1",
+    "Consecutive cycles starting at 1 per motor",
+    "One nonnegative integer RUL value per test motor",
+    "No blank rows",
+    "SHA-256 of local data and reference files"
+  ],
+  "test_usage": "Structural integrity only; no model fitting, tuning, target distribution summary or test metric calculation",
+  "training_summary": "Descriptive ranges and exact constant features only; any fitted feature selection must be recomputed on the learning split",
+  "files": [
+    {
+      "path": "CMAPSSData/train_FD001.txt",
+      "subset": "FD001",
+      "split": "train",
+      "bytes": 3515356,
+      "sha256": "963b5e22825b34d8b21c69e1aeb4af3e647050eb672ee8834ba4b5d91d2de0f8",
+      "rows": 20631,
+      "columns": 26,
+      "units_or_labels": 100,
+      "minimum_training_cycles": 128,
+      "maximum_training_cycles": 362,
+      "constant_training_features": [
+        "setting_3",
+        "sensor_1",
+        "sensor_5",
+        "sensor_10",
+        "sensor_16",
+        "sensor_18",
+        "sensor_19"
+      ],
+      "errors": [],
+      "expected_units_or_labels_from_readme": 100,
+      "documentation_warnings": []
+    },
+    {
+      "path": "CMAPSSData/test_FD001.txt",
+      "subset": "FD001",
+      "split": "test",
+      "bytes": 2228855,
+      "sha256": "3cda7109ce17bafb5443f2ac926cfcf88154b941b8c4cf95eb55d1ddd6f52851",
+      "rows": 13096,
+      "columns": 26,
+      "units_or_labels": 100,
+      "minimum_training_cycles": null,
+      "maximum_training_cycles": null,
+      "constant_training_features": [],
+      "errors": [],
+      "expected_units_or_labels_from_readme": 100,
+      "documentation_warnings": []
+    },
+    {
+      "path": "CMAPSSData/RUL_FD001.txt",
+      "subset": "FD001",
+      "split": "RUL",
+      "bytes": 429,
+      "sha256": "a19c8ec94931949d0485bdc35118206e9c81c4547b422efb9cf86f4ceddbceca",
+      "rows": 100,
+      "columns": 1,
+      "units_or_labels": 100,
+      "minimum_training_cycles": null,
+      "maximum_training_cycles": null,
+      "constant_training_features": [],
+      "errors": [],
+      "expected_units_or_labels_from_readme": 100,
+      "documentation_warnings": []
+    },
+    {
+      "path": "CMAPSSData/train_FD002.txt",
+      "subset": "FD002",
+      "split": "train",
+      "bytes": 9082480,
+      "sha256": "dac6c4dbc4e7c1bdeb5747da3d313d05c395bb99801b44a002b26a2ba13d788f",
+      "rows": 53759,
+      "columns": 26,
+      "units_or_labels": 260,
+      "minimum_training_cycles": 128,
+      "maximum_training_cycles": 378,
+      "constant_training_features": [],
+      "errors": [],
+      "expected_units_or_labels_from_readme": 260,
+      "documentation_warnings": []
+    },
+    {
+      "path": "CMAPSSData/test_FD002.txt",
+      "subset": "FD002",
+      "split": "test",
+      "bytes": 5734587,
+      "sha256": "de7b5bf7e998a985c378488480528b7c02cff1406a46740def362dda8d9b4e02",
+      "rows": 33991,
+      "columns": 26,
+      "units_or_labels": 259,
+      "minimum_training_cycles": null,
+      "maximum_training_cycles": null,
+      "constant_training_features": [],
+      "errors": [],
+      "expected_units_or_labels_from_readme": 259,
+      "documentation_warnings": []
+    },
+    {
+      "path": "CMAPSSData/RUL_FD002.txt",
+      "subset": "FD002",
+      "split": "RUL",
+      "bytes": 1110,
+      "sha256": "c851dd96a6ea6998d3c4a8f834d3c8013aa90e93a6ed950dc826ad0655b2906b",
+      "rows": 259,
+      "columns": 1,
+      "units_or_labels": 259,
+      "minimum_training_cycles": null,
+      "maximum_training_cycles": null,
+      "constant_training_features": [],
+      "errors": [],
+      "expected_units_or_labels_from_readme": 259,
+      "documentation_warnings": []
+    },
+    {
+      "path": "CMAPSSData/train_FD003.txt",
+      "subset": "FD003",
+      "split": "train",
+      "bytes": 4213862,
+      "sha256": "2abbe9968cc5e8eb091980f51b20f62bb4127336d3482cb52071d53bf23329e2",
+      "rows": 24720,
+      "columns": 26,
+      "units_or_labels": 100,
+      "minimum_training_cycles": 145,
+      "maximum_training_cycles": 525,
+      "constant_training_features": [
+        "setting_3",
+        "sensor_1",
+        "sensor_5",
+        "sensor_16",
+        "sensor_18",
+        "sensor_19"
+      ],
+      "errors": [],
+      "expected_units_or_labels_from_readme": 100,
+      "documentation_warnings": []
+    },
+    {
+      "path": "CMAPSSData/test_FD003.txt",
+      "subset": "FD003",
+      "split": "test",
+      "bytes": 2826651,
+      "sha256": "299babd63c8d987cef079c4a425429f33b3a34797d803bbe2ad48c29dbd0d790",
+      "rows": 16596,
+      "columns": 26,
+      "units_or_labels": 100,
+      "minimum_training_cycles": null,
+      "maximum_training_cycles": null,
+      "constant_training_features": [],
+      "errors": [],
+      "expected_units_or_labels_from_readme": 100,
+      "documentation_warnings": []
+    },
+    {
+      "path": "CMAPSSData/RUL_FD003.txt",
+      "subset": "FD003",
+      "split": "RUL",
+      "bytes": 428,
+      "sha256": "df1e0566306b174a2de41c67a3e7a51877889598b78643fc3e5685259091b7cb",
+      "rows": 100,
+      "columns": 1,
+      "units_or_labels": 100,
+      "minimum_training_cycles": null,
+      "maximum_training_cycles": null,
+      "constant_training_features": [],
+      "errors": [],
+      "expected_units_or_labels_from_readme": 100,
+      "documentation_warnings": []
+    },
+    {
+      "path": "CMAPSSData/train_FD004.txt",
+      "subset": "FD004",
+      "split": "train",
+      "bytes": 10350705,
+      "sha256": "27ef6160b6a1dcb2613a88de9c239f763b223f02cdc41dc5cdedc5dc189b6218",
+      "rows": 61249,
+      "columns": 26,
+      "units_or_labels": 249,
+      "minimum_training_cycles": 128,
+      "maximum_training_cycles": 543,
+      "constant_training_features": [],
+      "errors": [],
+      "expected_units_or_labels_from_readme": 248,
+      "documentation_warnings": [
+        "Expected 248 units/labels, found 249"
+      ]
+    },
+    {
+      "path": "CMAPSSData/test_FD004.txt",
+      "subset": "FD004",
+      "split": "test",
+      "bytes": 6957759,
+      "sha256": "1dc675fff0624bac10786927c6715b37d1297657137400d2b1a3138d777a3ba5",
+      "rows": 41214,
+      "columns": 26,
+      "units_or_labels": 248,
+      "minimum_training_cycles": null,
+      "maximum_training_cycles": null,
+      "constant_training_features": [],
+      "errors": [],
+      "expected_units_or_labels_from_readme": 249,
+      "documentation_warnings": [
+        "Expected 249 units/labels, found 248"
+      ]
+    },
+    {
+      "path": "CMAPSSData/RUL_FD004.txt",
+      "subset": "FD004",
+      "split": "RUL",
+      "bytes": 1084,
+      "sha256": "196b836b85a95ac7fdbbf29c5fdf1657382eafa445644d114ffaaf50dc2975e1",
+      "rows": 248,
+      "columns": 1,
+      "units_or_labels": 248,
+      "minimum_training_cycles": null,
+      "maximum_training_cycles": null,
+      "constant_training_features": [],
+      "errors": [],
+      "expected_units_or_labels_from_readme": 249,
+      "documentation_warnings": [
+        "Expected 249 units/labels, found 248"
+      ]
+    }
+  ],
+  "references": [
+    {
+      "path": "CMAPSSData/Damage Propagation Modeling.pdf",
+      "bytes": 434158,
+      "sha256": "e7aaef80c177333f400a4c1099fe76e67d244569b9397c937ec4cd3ed5b44a27"
+    },
+    {
+      "path": "CMAPSSData/readme.txt",
+      "bytes": 2442,
+      "sha256": "4f5270554b775c67e73aff383c5436fd329d6e4cc3d3a116913276fae511269b"
+    }
+  ],
+  "structural_error_count": 0,
+  "documentation_warning_count": 3,
+  "test_label_alignment": [
+    {
+      "subset": "FD001",
+      "test_units": 100,
+      "rul_rows": 100,
+      "counts_match": true,
+      "mapping": "RUL row i corresponds to test unit i; test unit identifiers verified contiguous and ascending from 1"
+    },
+    {
+      "subset": "FD002",
+      "test_units": 259,
+      "rul_rows": 259,
+      "counts_match": true,
+      "mapping": "RUL row i corresponds to test unit i; test unit identifiers verified contiguous and ascending from 1"
+    },
+    {
+      "subset": "FD003",
+      "test_units": 100,
+      "rul_rows": 100,
+      "counts_match": true,
+      "mapping": "RUL row i corresponds to test unit i; test unit identifiers verified contiguous and ascending from 1"
+    },
+    {
+      "subset": "FD004",
+      "test_units": 248,
+      "rul_rows": 248,
+      "counts_match": true,
+      "mapping": "RUL row i corresponds to test unit i; test unit identifiers verified contiguous and ascending from 1"
+    }
+  ],
+  "fd004_count_reference": {
+    "url": "https://c3.ndc.nasa.gov/dashlink/static/media/publication/2018_DegradationModelingRULEnsemble_Wu.pdf",
+    "title": "Li, Goebel and Wu, Degradation Modeling and Remaining Useful Life Prediction of Aircraft Engines Using Ensemble Learning",
+    "section": "4.1",
+    "scope": "Supports 249 training units and 248 test units only. Its reported training row count differs from the local file; this is not upstream checksum authentication."
+  }
+}

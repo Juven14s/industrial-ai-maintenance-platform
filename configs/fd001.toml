@@ -1,0 +1,22 @@
+# Paths are relative to the project root (the parent of configs/).
+# Only train_FD001.txt is read during this preparation stage.
+[data]
+raw_dir = "CMAPSSData"
+subset = "FD001"
+
+[split]
+validation_fraction = 0.2
+seed = 42
+
+[validation]
+# One fixed observation cutoff per held-out engine, sampled uniformly from
+# min(min_observed_cycles, final_cycle - 1) to final_cycle - 1, inclusive.
+seed = 43
+min_observed_cycles = 20
+
+[windows]
+length = 30
+
+[output]
+directory = "data/processed/FD001"
+report_dir = "reports/fd001"

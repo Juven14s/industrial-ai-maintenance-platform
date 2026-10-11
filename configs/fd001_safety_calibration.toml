@@ -1,0 +1,9 @@
+# Cross-fitted calibration of the safety model selected on train_FD001 only.
+
+[base]
+safety_config = "configs/fd001_safety_v2.toml"
+
+[calibration]
+target_overestimate_rates = [0.05, 0.10, 0.15]
+maximum_fold_overestimate_rate = 0.20
+maximum_horizon_overestimate_rate = 0.25

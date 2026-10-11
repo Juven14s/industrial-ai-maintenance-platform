@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=75,<83"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "industrial-maintenance"
+version = "0.1.0"
+description = "Reproducible C-MAPSS RUL preparation and ML/DL comparison for industrial maintenance"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "numpy>=2.0,<3",
+    "pandas>=2.2,<3",
+    "scikit-learn>=1.5,<2",
+    "matplotlib>=3.9,<4",
+    "joblib>=1.4,<2",
+]
+
+[project.optional-dependencies]
+models = [
+    "torch>=2.7,<3",
+    "mlflow>=3,<4",
+]
+api = [
+    "fastapi>=0.115,<1",
+    "ortools>=9.15,<10",
+    "pypdf>=6.19,<7",
+    "pydantic>=2.10,<3",
+    "sentence-transformers>=6.1,<7",
+    "torch>=2.7,<3",
+    "transformers>=5.19,<6",
+    "uvicorn>=0.30,<1",
+]
+ui = [
+    "streamlit>=1.40,<2",
+]
+rag = [
+    "pypdf>=6.19,<7",
+    "sentence-transformers>=6.1,<7",
+    "torch>=2.7,<3",
+    "transformers>=5.19,<6",
+]
+planning = [
+    "ortools>=9.15,<10",
+]
+dev = [
+    "httpx>=0.27,<1",
+    "pytest>=8,<10",
+    "ruff>=0.12,<1",
+    "nbformat>=5.10,<6",
+    "nbclient>=0.10,<1",
+    "jupyter-client>=8.6,<9",
+    "ipykernel>=6.29,<8",
+    "jupyterlab>=4,<5",
+]
+
+[project.scripts]
+prepare-fd001 = "industrial_maintenance.prepare:main"
+train-fd001 = "industrial_maintenance.train:main"
+evaluate-fd001 = "industrial_maintenance.evaluate:main"
+train-fd001-safety = "industrial_maintenance.train_safety:main"
+calibrate-fd001-safety = "industrial_maintenance.calibrate_safety:main"
+serve-maintenance-api = "industrial_maintenance.api:main"
+serve-maintenance-dashboard = "industrial_maintenance.dashboard_launcher:main"
+rag-maintenance = "industrial_maintenance.rag:main"
+answer-maintenance = "industrial_maintenance.rag_generation:main"
+plan-maintenance = "industrial_maintenance.planning:main"
+evaluate-maintenance-planning = "industrial_maintenance.planning_evaluation:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = ["tmp"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
