@@ -1,6 +1,6 @@
 # Scénario de démonstration
 
-Ce parcours présente le projet en six à huit minutes. Il suppose que les dépendances, les artefacts ML et l'index documentaire ont déjà été préparés.
+Ce parcours présente le projet en huit à dix minutes. Il suppose que les dépendances, les artefacts ML et l'index documentaire ont déjà été préparés.
 
 ## 1. Démarrer les services
 
@@ -48,7 +48,19 @@ Message à faire passer : la réponse est limitée aux preuves récupérées et 
 
 Message à faire passer : l'optimisation respecte les mêmes contraintes que l'heuristique et améliore le scénario contraint enregistré, mais les coûts et ressources sont simulés.
 
-## 5. Conclure avec les résultats
+## 5. Superviser un incident agentique
+
+1. Ouvrir la section 6 du dashboard.
+2. Garder les actions « tendances capteurs » et « RUL », puis lancer l'analyse.
+3. Montrer la route réellement exécutée, les sorties structurées et la trace.
+4. Souligner que le statut reste `pending_approval` et qu'aucune recommandation finale n'existe encore.
+5. Modifier éventuellement le brouillon, puis l'approuver ; relire ensuite le checkpoint final.
+
+Pour une démonstration complète, ajouter la question documentaire et le planning. Le graphe ordonne alors tendances → RUL → RAG → planning et injecte automatiquement la RUL conservatrice dans le planificateur.
+
+Message à faire passer : l'agent orchestre des services existants ; il ne diagnostique pas une panne et ne décide pas seul. Le routeur actuel est déterministe, l'état est persistant et la validation humaine est obligatoire.
+
+## 6. Conclure avec les résultats
 
 Présenter quatre résultats mesurés :
 
@@ -56,12 +68,19 @@ Présenter quatre résultats mesurés :
 - V2 hors pli : 5,1 % de surestimations, avec un biais prudent de −19,573 cycles ;
 - RAG sur le jeu de développement : 30 décisions sur 30 et 25 références attendues sur 25 ;
 - planification contrainte : coût simulé réduit de 7 680 à 5 110 et retard cumulé réduit de 5 à 2 cycles.
+- orchestration : 6 scénarios contractuels sur 6 conformes, dont 3 contrôles citation/abstention et 2 contrôles de RUL conservatrice pour le planning.
 
-Terminer en indiquant les limites : un seul sous-jeu C-MAPSS, aucune donnée de maintenance réelle, corpus documentaire restreint, coûts de planning simulés et conteneurs non exécutés sur le poste actuel.
+Préciser que le dernier résultat utilise des services factices déterministes et valide le contrat logiciel, pas une performance opérationnelle. Terminer en indiquant les limites : un seul sous-jeu C-MAPSS, aucune donnée de maintenance réelle, corpus documentaire restreint, coûts de planning simulés et conteneurs non exécutés sur le poste actuel.
 
 ## Solution de repli
 
-Si Streamlit n'est pas disponible, ouvrir <http://127.0.0.1:8000/docs> pour appeler les routes depuis Swagger. Les évaluations déjà produites restent consultables dans les rapports RUL, RAG et planification. Pour vérifier seulement l'optimiseur sans charger les modèles de langage :
+Si Streamlit n'est pas disponible, ouvrir <http://127.0.0.1:8000/docs> pour appeler les routes depuis Swagger. Les évaluations déjà produites restent consultables dans les rapports RUL, RAG, planification et orchestration. Le workflow simple peut aussi être lancé directement depuis le CSV :
+
+```powershell
+.\.venv\Scripts\run-maintenance-agent.exe run-csv examples\fd001_demo_engine_3.csv --incident-id demo-fd001-003 --actions sensor_trends predict_rul
+```
+
+Pour vérifier seulement l'optimiseur sans charger les modèles de langage :
 
 ```powershell
 .\.venv\Scripts\plan-maintenance.exe `

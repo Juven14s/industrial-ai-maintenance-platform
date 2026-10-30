@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "suite_id": "maintenance-agent-routing-safety-v1",
+  "description": "Scénarios déterministes pour vérifier l'orchestration, l'interruption humaine, les citations et l'usage de la RUL conservatrice. Ils ne mesurent pas la qualité des modèles métier.",
+  "scenarios": [
+    {
+      "scenario_id": "lexical-trends-rul",
+      "message": "Analyse les tendances des capteurs et estime la RUL de ce moteur.",
+      "include_history": true,
+      "include_planning": false,
+      "expected_actions": [
+        "sensor_trends",
+        "predict_rul"
+      ],
+      "expected_initial_status": "pending_approval",
+      "expected_interrupt": true,
+      "review_action": "approve",
+      "expected_final_status": "approved"
+    },
+    {
+      "scenario_id": "grounded-document-answer",
+      "message": "Consulte le manuel technique.",
+      "question": "Pourquoi la documentation décrit-elle une dégradation progressive ?",
+      "include_history": false,
+      "include_planning": false,
+      "expected_actions": [
+        "answer_documents"
+      ],
+      "expected_initial_status": "pending_approval",
+      "expected_interrupt": true,
+      "review_action": "approve",
+      "expected_final_status": "approved",
+      "expected_answerable": true
+    },
+    {
+      "scenario_id": "document-abstention",
+      "message": "Recherche une procédure dans les sources.",
+      "question": "Quelle procédure inconnue faut-il appliquer ?",
+      "include_history": false,
+      "include_planning": false,
+      "expected_actions": [
+        "answer_documents"
+      ],
+      "expected_initial_status": "pending_approval",
+      "expected_interrupt": true,
+      "review_action": "approve",
+      "expected_final_status": "approved",
+      "expected_answerable": false
+    },
+    {
+      "scenario_id": "planning-with-conservative-rul",
+      "message": "Planifie une intervention de maintenance pour ce moteur.",
+      "include_history": true,
+      "include_planning": true,
+      "expected_actions": [
+        "predict_rul",
+        "plan_maintenance"
+      ],
+      "expected_initial_status": "pending_approval",
+      "expected_interrupt": true,
+      "review_action": "approve",
+      "expected_final_status": "approved",
+      "expect_planning_safety": true
+    },
+    {
+      "scenario_id": "explicit-full-route",
+      "message": "Analyse complète de cet incident.",
+      "question": "Que disent les sources sur la dégradation ?",
+      "include_history": true,
+      "include_planning": true,
+      "requested_actions": [
+        "plan_maintenance",
+        "answer_documents",
+        "sensor_trends"
+      ],
+      "expected_actions": [
+        "sensor_trends",
+        "predict_rul",
+        "answer_documents",
+        "plan_maintenance"
+      ],
+      "expected_initial_status": "pending_approval",
+      "expected_interrupt": true,
+      "review_action": "approve",
+      "expected_final_status": "approved",
+      "expected_answerable": true,
+      "expect_planning_safety": true
+    },
+    {
+      "scenario_id": "missing-planning-inputs",
+      "message": "Planifie une intervention de maintenance.",
+      "include_history": false,
+      "include_planning": false,
+      "expected_actions": [
+        "predict_rul",
+        "plan_maintenance"
+      ],
+      "expected_initial_status": "failed",
+      "expected_interrupt": false,
+      "review_action": null,
+      "expected_final_status": "failed"
+    }
+  ]
+}

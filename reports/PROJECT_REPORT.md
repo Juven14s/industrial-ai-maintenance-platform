@@ -2,11 +2,11 @@
 
 **Projet :** Industrial AI Maintenance Platform  
 **Périmètre :** NASA C-MAPSS FD001, documentation technique publique et scénarios de maintenance simulés  
-**État :** version portfolio finalisée localement
+**État :** plateforme métier finalisée localement ; extension agentique supervisée implémentée et contrat d'orchestration évalué, benchmark de bout en bout restant
 
 ## Objectif
 
-Le projet relie trois problèmes souvent traités séparément : prévoir la durée de vie restante d'un équipement, retrouver des informations dans une documentation technique et organiser les interventions sous contraintes. Une API FastAPI expose ces fonctions et un dashboard Streamlit permet de les démontrer sans construire de requêtes JSON.
+Le projet relie trois problèmes souvent traités séparément : prévoir la durée de vie restante d'un équipement, retrouver des informations dans une documentation technique et organiser les interventions sous contraintes. Une API FastAPI expose ces fonctions et un dashboard Streamlit permet de les démontrer sans construire de requêtes JSON. Une extension LangGraph orchestre désormais ces briques dans un workflow supervisé, persistant et réutilisable via HTTP, CLI ou MCP.
 
 ## Données et protocole ML
 
@@ -45,17 +45,29 @@ FastAPI expose l'état du service, les métadonnées des modèles, la prédictio
 
 Streamlit consomme exclusivement cette API. L'utilisateur peut importer un historique, choisir un cycle, observer les capteurs, obtenir les deux RUL, interroger les documents et éditer une flotte à planifier. Cette séparation évite de dupliquer le prétraitement et la logique métier dans l'interface.
 
+## Orchestration agentique et MCP
+
+Le workflow LangGraph traite un incident au moyen de quatre capacités : résumé descriptif des tendances capteurs, prédiction RUL, réponse documentaire sourcée et planification. Les actions sont soit demandées explicitement, soit choisies par un routeur déterministe par mots-clés. Qwen3-1.7B reste limité à la génération documentaire ; il n'est pas utilisé comme routeur d'outils.
+
+L'état est typé, sérialisable et persisté dans SQLite par identifiant d'incident. Le graphe exécute les outils dans un ordre stable, conserve une trace et transforme les erreurs métier en résultats structurés. Une planification déclenche toujours une prédiction préalable et reçoit uniquement la RUL conservatrice. Avant toute finalisation, le workflow s'interrompt : une personne doit approuver, éditer ou rejeter le brouillon. Un incident déjà en attente ne peut pas être écrasé par un nouveau lancement. Cette étape empêche de présenter une sortie automatique comme une décision opérationnelle autonome.
+
+FastAPI expose la création, la consultation et la revue des exécutions sous `/agent/runs`. Une CLI permet le même parcours hors interface. Un serveur MCP autonome publie cinq outils structurés et des ressources de métadonnées, tout en réutilisant les services existants par injection. Il ne charge rien à l'import et filtre les métadonnées publiques susceptibles de révéler des chemins ou des secrets.
+
+Un harnais versionné exécute six scénarios avec des services factices déterministes : 6/6 routes et résultats attendus, 3/3 politiques de citation ou d'abstention et 2/2 contrôles imposant la RUL conservatrice au planning. Ces résultats prouvent le contrat d'orchestration et ses invariants ; ils ne mesurent ni la qualité ML/RAG, ni la latence des vrais services, ni un taux de réussite industriel.
+
 ## Reproductibilité et validation
 
-Les configurations TOML fixent les graines, découpages, chemins, paramètres de modèles et coûts. MLflow suit les expériences d'entraînement. Les évaluations produisent des rapports Markdown, des données tabulaires et des figures vérifiables. La suite automatisée compte 222 tests réussis ; Ruff et `pip check` passent également. Le fichier de verrouillage fige les dépendances utilisées localement.
+Les configurations TOML fixent les graines, découpages, chemins, paramètres de modèles, coûts et politique du workflow. MLflow suit les expériences d'entraînement. Les évaluations produisent des rapports Markdown, des données tabulaires et des figures vérifiables. La suite automatisée couvre aussi le routage, les reprises SQLite, les trois décisions humaines, l'usage obligatoire de la RUL conservatrice et les contrats MCP. Un smoke test avec les artefacts RUL réels, l'analyse des tendances et la reprise après interruption humaine a également abouti. Ruff et `pip check` font partie de la validation locale. Le fichier de verrouillage fige les dépendances utilisées localement.
 
-Le `Dockerfile` et `compose.yaml` décrivent l'API et le dashboard, avec contrôles de santé. Leur exécution réelle reste à valider car Docker Desktop n'est pas installé sur la machine de développement.
+Le `Dockerfile` installe aussi l'extra MCP. `compose.yaml` décrit l'API et le dashboard, avec contrôles de santé et volume nommé pour les checkpoints agentiques. Le serveur MCP n'est pas démarré par défaut afin de ne pas dupliquer les modèles en mémoire. L'exécution réelle des conteneurs reste à valider car Docker Desktop n'est pas installé sur la machine de développement.
 
 ## Limites et suite possible
 
-FD001 représente une seule condition opératoire et un seul mode de dégradation simulé. Une généralisation industrielle demanderait des données réelles, une validation temporelle externe, une définition métier du cycle et une surveillance de dérive. Le corpus documentaire demeure restreint et son jeu de questions a participé au développement. Les coûts de maintenance et les capacités sont hypothétiques. Une suite pertinente consisterait à tester FD002/FD004, réserver un nouveau jeu RAG à l'évaluation finale, calibrer une incertitude prédictive et relier le planificateur à des calendriers réels.
+FD001 représente une seule condition opératoire et un seul mode de dégradation simulé. Une généralisation industrielle demanderait des données réelles, une validation temporelle externe, une définition métier du cycle et une surveillance de dérive. Le corpus documentaire demeure restreint et son jeu de questions a participé au développement. Les coûts de maintenance et les capacités sont hypothétiques.
+
+Le routeur agentique actuel repose sur des règles, pas sur un modèle de langage. Il ne détecte pas une anomalie et l'analyse des capteurs ne fournit aucun diagnostic. La persistance SQLite convient à la démonstration locale mais pas à un déploiement distribué. Le benchmark actuel porte uniquement sur le contrat logiciel avec des services factices ; la réussite, la latence et le coût de bout en bout restent à mesurer sur des incidents réservés avec les vrais artefacts. Une suite pertinente consisterait aussi à tester FD002/FD004, réserver un nouveau jeu RAG à l'évaluation finale, calibrer une incertitude prédictive et relier le planificateur à des calendriers réels.
 
 ## Conclusion
 
-La plateforme constitue un prototype de bout en bout : données multivariées, modèles comparés, objectif de sécurité explicite, RAG sourcé, optimisation sous contraintes, API, interface et tests. Ses résultats sont reproductibles dans le périmètre étudié et ses limites sont rendues visibles afin d'éviter d'interpréter une simulation académique comme une validation industrielle.
+La plateforme constitue un prototype de bout en bout : données multivariées, modèles comparés, objectif de sécurité explicite, RAG sourcé, optimisation sous contraintes, orchestration supervisée, API, MCP, interface et tests. Ses résultats métier sont reproductibles dans le périmètre étudié. L'extension agentique possède désormais un benchmark contractuel versionné ; toute revendication de performance opérationnelle attend encore une évaluation réservée avec les vrais services.
 

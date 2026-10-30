@@ -2,11 +2,11 @@
 
 [![CI](https://github.com/Juven14s/industrial-ai-maintenance-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/Juven14s/industrial-ai-maintenance-platform/actions/workflows/ci.yml)
 
-> Une interface Streamlit de démonstration permet de tester la prédiction, d'interroger la documentation et de construire un planning de flotte sans écrire de JSON. Elle appelle l’API FastAPI par HTTP et ne duplique ni le prétraitement, ni les modèles, ni la logique métier.
+> Une interface Streamlit de démonstration permet de tester la prédiction, d'interroger la documentation, de construire un planning de flotte et de superviser un workflow agentique sans écrire de JSON. Elle appelle l’API FastAPI par HTTP et ne duplique ni le prétraitement, ni les modèles, ni la logique métier.
 
 ## Interface de démonstration Streamlit
 
-Le dashboard guide l’utilisateur dans un parcours simple : choisir un moteur FD001 de démonstration ou importer un CSV, sélectionner le cycle d’observation, examiner les courbes des capteurs, puis demander une prédiction. Il affiche la RUL conservatrice comme valeur de décision, la RUL centrale comme information complémentaire, une échéance prudente exprimée en cycles et les détails des modèles. Une deuxième zone accepte une question technique et développe chaque passage cité. Une troisième permet d'éditer une flotte simulée, d'utiliser la RUL conservatrice courante et de comparer une heuristique au planning CP-SAT. Les deux RUL proviennent de modèles indépendants et ne constituent pas un intervalle de confiance.
+Le dashboard guide l’utilisateur dans un parcours simple : choisir un moteur FD001 de démonstration ou importer un CSV, sélectionner le cycle d’observation, examiner les courbes des capteurs, puis demander une prédiction. Il affiche la RUL conservatrice comme valeur de décision, la RUL centrale comme information complémentaire, une échéance prudente exprimée en cycles et les détails des modèles. Une deuxième zone accepte une question technique et développe chaque passage cité. Une troisième permet d'éditer une flotte simulée, d'utiliser la RUL conservatrice courante et de comparer une heuristique au planning CP-SAT. Une dernière zone lance une analyse agentique, expose les outils appelés et suspend la recommandation jusqu'à son approbation, sa modification ou son rejet par l'utilisateur. Les deux RUL proviennent de modèles indépendants et ne constituent pas un intervalle de confiance.
 
 En local, lance les deux services dans deux terminaux depuis la racine du projet.
 
@@ -24,13 +24,13 @@ Terminal 2 — interface Streamlit :
 
 Ouvre ensuite <http://127.0.0.1:8501>. Le dashboard communique uniquement avec FastAPI ; l’URL peut aussi être fournie par la variable d’environnement `MAINTENANCE_API_URL`.
 
-Le mode Docker Compose expose l’API sur `http://127.0.0.1:8000` et le dashboard sur `http://127.0.0.1:8501`. Les fichiers de conteneurisation sont fournis, mais leur exécution reste à valider sur une machine équipée de Docker : Docker n’est pas installé dans l’environnement local actuel.
+Le mode Docker Compose expose l’API sur `http://127.0.0.1:8000` et le dashboard sur `http://127.0.0.1:8501`. Un volume nommé conserve les checkpoints agentiques SQLite lors du remplacement du conteneur API. Les fichiers de conteneurisation sont fournis, mais leur exécution reste à valider sur une machine équipée de Docker : Docker n’est pas installé dans l’environnement local actuel.
 
 Cette interface sert à démontrer les pipelines ML, RAG et d'optimisation. Les coûts, criticités, durées et ressources du planning sont simulés ; l’« échéance prudente » reste exprimée en cycles et ne constitue pas une date d’intervention réelle.
 
 Projet de portfolio après un master 2 en data science : prédire la durée de vie restante d'équipements à partir de séries temporelles, interroger une documentation technique avec des réponses sourcées et proposer un planning de maintenance sous contraintes.
 
-**État actuel : chaîne RUL, RAG documentaire, optimisation sous contraintes, API FastAPI et dashboard Streamlit réalisés sur FD001 et des scénarios métier simulés.** La V1 atteint une **RMSE de 20,986 cycles** et une **MAE de 14,233 cycles** sur le test officiel, mais 73 % de surestimations. La V2 réduit le taux de surestimation hors pli à **5,1 %**, avec le compromis d'un biais prudent de −19,573 cycles. Le RAG local fournit des réponses citées avec abstention. Le planificateur compare une heuristique à OR-Tools CP-SAT et réduit le coût simulé de **33,5 %** sur le scénario contraint, sans présenter ce chiffre comme une économie industrielle observée.
+**État actuel : chaîne RUL, RAG documentaire, optimisation sous contraintes, API FastAPI, dashboard Streamlit et workflow LangGraph supervisé réalisés sur FD001 et des scénarios métier simulés.** La V1 atteint une **RMSE de 20,986 cycles** et une **MAE de 14,233 cycles** sur le test officiel, mais 73 % de surestimations. La V2 réduit le taux de surestimation hors pli à **5,1 %**, avec le compromis d'un biais prudent de −19,573 cycles. Le RAG local fournit des réponses citées avec abstention. Le planificateur compare une heuristique à OR-Tools CP-SAT et réduit le coût simulé de **33,5 %** sur le scénario contraint. Le workflow agentique respecte **6 scénarios contractuels déterministes sur 6** ; cette mesure valide l'orchestration et ses garde-fous, pas la qualité industrielle de bout en bout.
 
 Le développement est prévu sur PC local, avec Google Colab pour les entraînements si nécessaire.
 
@@ -61,6 +61,9 @@ Le développement est prévu sur PC local, avec Google Colab pour les entraînem
 - [Corpus RAG gelé](configs/rag_corpus.toml), [configuration](configs/rag.toml), [jeu de 30 questions](data/evaluation/rag/questions_v1.jsonl), [évaluation de la recherche](reports/rag/RETRIEVAL_EVALUATION.md) et [évaluation de la génération](reports/rag/GENERATION_EVALUATION.md) : extraction traçable, recherche hybride, réponses citées et abstention mesurée.
 - [Service de recherche](src/industrial_maintenance/document_search.py), [génération locale](src/industrial_maintenance/rag_generation.py) et [validation API RAG](reports/rag/API_VALIDATION.md) : chargement unique des modèles, citations contrôlées et refus des demandes sans preuve documentaire.
 - [Planificateur](src/industrial_maintenance/planning.py), [configuration](configs/maintenance_planning.toml), [scénarios](data/scenarios/maintenance/) et [rapport d'évaluation](reports/planning/PLANNING_EVALUATION.md) : heuristique, CP-SAT, contraintes de ressources, coût simulé et détection des scénarios irréalisables.
+- [Workflow LangGraph](src/industrial_maintenance/agent_workflow.py), [contrats](src/industrial_maintenance/agent_contracts.py), [persistance](src/industrial_maintenance/agent_checkpoint.py) et [configuration](configs/agent.toml) : routage auditable, outils ordonnés, checkpoints SQLite et validation humaine obligatoire.
+- [Serveur MCP](src/industrial_maintenance/mcp_server.py) et [CLI agentique](src/industrial_maintenance/agent_cli.py) : cinq outils structurés, ressources publiques filtrées et démonstration directe depuis un CSV C-MAPSS.
+- [Évaluation du contrat agentique](reports/agent/ORCHESTRATION_EVALUATION.md), [scénarios](evals/agent_scenarios.json) et [résultats JSON](reports/agent/orchestration_evaluation.json) : routage, interruption humaine, citations, abstention et règle de RUL conservatrice sur six scénarios déterministes sans modèles métier.
 
 ## Résultats de la préparation
 
@@ -127,7 +130,7 @@ Le modèle retenu est un **HistGradientBoosting au quantile 0,05**, suivi d'une 
 
 Cette sortie est une **RUL conservatrice destinée à la décision de maintenance**, et non une estimation centrale. Sa prudence entraîne davantage d'interventions anticipées, surtout loin de la panne. Les taux mesurés sont des résultats empiriques de validation croisée ; ils ne garantissent pas qu'un futur moteur respectera exactement ces fréquences. La RMSE V2 n'est pas directement comparable à la RMSE officielle V1, car les horizons et le protocole d'évaluation diffèrent. Le test officiel déjà consulté reste exclu de toute sélection V2.
 
-## API d'inférence, documentaire et de planification
+## API métier et workflow agentique supervisé
 
 L'API recharge au démarrage le LSTM V1, le Gradient Boosting quantile V2, leurs prétraitements et la calibration. Elle vérifie les empreintes SHA-256 et la cohérence des manifestes avant d'accepter une prédiction. Aucun entraînement n'est lancé par le service.
 
@@ -140,6 +143,9 @@ L'API recharge au démarrage le LSTM V1, le Gradient Boosting quantile V2, leurs
 | `POST /documents/search` | Retourner les passages les plus pertinents avec pages, sources et limites |
 | `POST /documents/ask` | Générer une réponse française sourcée ou signaler une abstention |
 | `POST /maintenance/plan` | Comparer l'heuristique et CP-SAT sur une flotte simulée |
+| `POST /agent/runs` | Démarrer un incident et produire un brouillon en attente de revue |
+| `GET /agent/runs/{incident_id}` | Relire le dernier checkpoint persistant d'un incident |
+| `POST /agent/runs/{incident_id}/review` | Approuver, modifier ou rejeter le brouillon interrompu |
 | `GET /docs` | Ouvrir la documentation interactive générée par FastAPI |
 
 Une requête `POST /predict/rul` contient un `unit_id` entier positif et une liste `observations`. Chaque observation contient un cycle positif et les 15 mesures brutes suivantes, sans normalisation préalable : `sensor_2`, `sensor_3`, `sensor_4`, `sensor_6`, `sensor_7`, `sensor_8`, `sensor_9`, `sensor_11`, `sensor_12`, `sensor_13`, `sensor_14`, `sensor_15`, `sensor_17`, `sensor_20` et `sensor_21`. Les six capteurs constants écartés à l'entraînement sont facultatifs ; les réglages opératoires, la RUL réelle et tout autre champ sont refusés.
@@ -257,6 +263,51 @@ Invoke-RestMethod -Method Post `
 
 Sur ce scénario simulé, CP-SAT prouve un coût optimal de 5 110 contre 7 680 pour l'heuristique, soit −33,5 %. Il réduit le retard total de cinq à deux cycles. Un troisième scénario volontairement surchargé est correctement déclaré `infeasible`. Les unités de coût, durées, criticités et ressources sont des hypothèses de démonstration ; le résultat ne représente pas une économie mesurée.
 
+### Workflow LangGraph supervisé
+
+Le workflow reçoit un incident, un historique moteur, une question documentaire facultative et, si une planification est demandée, son contexte de ressources. Il orchestre quatre actions dans un ordre fixe : `sensor_trends`, `predict_rul`, `answer_documents`, puis `plan_maintenance`. Les actions peuvent être fournies explicitement par `requested_actions` ou sélectionnées par un routeur lexical déterministe. Qwen3-1.7B génère les réponses documentaires ; il ne route pas les outils.
+
+L'analyse des capteurs résume des variations et des pentes sans produire de diagnostic. Une demande de planification ajoute automatiquement la prédiction RUL et transmet uniquement `decision_value`, égale à la RUL conservatrice. Le graphe compose ensuite un brouillon et s'interrompt obligatoirement. La sortie finale n'existe qu'après une décision humaine `approve`, `edit` ou `reject`. Les checkpoints SQLite sont associés à `incident_id`; un incident déjà en attente de revue ne peut pas être écrasé par un nouveau lancement.
+
+La commande suivante lance le scénario le plus simple directement depuis le CSV de démonstration, avec les 30 derniers cycles :
+
+```powershell
+.\.venv\Scripts\run-maintenance-agent.exe --api-config configs/api.toml --agent-config configs/agent.toml run-csv examples/fd001_demo_engine_3.csv --incident-id demo-fd001-003 --actions sensor_trends predict_rul
+```
+
+La réponse a le statut `pending_approval` et contient le brouillon, les sorties structurées et l'interruption. La même exécution peut être relue puis approuvée :
+
+```powershell
+.\.venv\Scripts\run-maintenance-agent.exe --api-config configs/api.toml --agent-config configs/agent.toml status demo-fd001-003
+.\.venv\Scripts\run-maintenance-agent.exe --api-config configs/api.toml --agent-config configs/agent.toml resume demo-fd001-003 --action approve --comment "Revue humaine effectuée"
+```
+
+`--action edit` exige `--edited-recommendation`; `--action reject` conserve la trace mais ne produit aucune recommandation finale. La CLI charge les mêmes services que l'API. Elle peut donc prendre plusieurs secondes au démarrage sur CPU, notamment à cause du modèle documentaire local, même lorsque l'action documentaire n'est pas demandée.
+
+### Outils MCP
+
+Le serveur MCP réutilise les services métier et expose `predict_rul`, `summarize_sensor_trends`, `search_documents`, `answer_documents` et `plan_maintenance`. Cinq ressources décrivent les modèles, l'index documentaire, la politique de planification, les capteurs et la disponibilité des services : `maintenance://models`, `maintenance://documents/status`, `maintenance://planning/policy`, `maintenance://sensors` et `maintenance://service/status`.
+
+Pour un client MCP local utilisant l'entrée-sortie standard :
+
+```powershell
+.\.venv\Scripts\serve-maintenance-mcp.exe --api-config configs/api.toml --transport stdio
+```
+
+Pour exposer le transport HTTP streamable sur une adresse locale :
+
+```powershell
+.\.venv\Scripts\serve-maintenance-mcp.exe --api-config configs/api.toml --transport streamable-http --host 127.0.0.1 --port 8001 --path /mcp
+```
+
+Le serveur MCP reste un processus autonome : le lancer en parallèle de FastAPI charge une seconde copie des modèles. Il n'est donc pas démarré par défaut dans Compose. Les ressources publiques retirent les champs assimilables à des chemins, secrets, jetons ou identifiants sensibles.
+
+Le harnais `agent_eval` exécute six scénarios versionnés avec des services factices déterministes. Il obtient 6/6 routes exactes, 3/3 politiques de citation ou d'abstention et 2/2 contrôles de planification avec la RUL conservatrice. Ces chiffres sont des **tests de contrat** ; ils n'incluent ni la qualité des modèles, ni la latence de Qwen, ni un taux de réussite sur des incidents réels. Reproduction :
+
+```powershell
+.\.venv\Scripts\python.exe -m industrial_maintenance.agent_eval --scenarios evals\agent_scenarios.json --output reports\agent\orchestration_evaluation.json
+```
+
 Le [rapport de validation de l'API](reports/fd001/api/API_VALIDATION.md) conserve la preuve d'un lancement local avec les vrais artefacts, ainsi que la réponse obtenue pour une trajectoire de 30 cycles.
 
 Pour construire et lancer l'API et le dashboard dans Docker Desktop, avec les bundles déjà présents dans `artifacts/models/FD001/` :
@@ -265,7 +316,7 @@ Pour construire et lancer l'API et le dashboard dans Docker Desktop, avec les bu
 docker compose up --build
 ```
 
-Compose publie l'API sur `http://127.0.0.1:8000`, le dashboard sur `http://127.0.0.1:8501` et vérifie périodiquement la santé des deux services. Arrêter ensuite les services et supprimer les conteneurs avec :
+Compose publie l'API sur `http://127.0.0.1:8000`, le dashboard sur `http://127.0.0.1:8501` et vérifie périodiquement la santé des deux services. Le volume `agent-checkpoints` conserve `data/processed/agent/checkpoints.sqlite3`. Arrêter ensuite les services et supprimer les conteneurs avec :
 
 ```powershell
 docker compose down
@@ -273,23 +324,25 @@ docker compose down
 
 L'image contient les artefacts d'inférence figés et la trajectoire de démonstration sans cible RUL. Pendant sa construction, elle vérifie les cinq sources documentaires, régénère les 192 passages, télécharge les révisions figées du modèle d'embeddings et de Qwen3-1.7B, puis construit l'index. Le modèle génératif ajoute environ 4 Go au cache de construction. L'image ne relance aucun entraînement RUL. Toute modification d'un bundle, d'une source ou du manifeste impose de reconstruire l'image.
 
-## Reproduire les jalons 1 à 5 sous Windows
+<a id="reproduire-les-jalons-1-à-5-sous-windows"></a>
+
+## Reproduire les jalons 1 à 7 sous Windows
 
 Depuis la racine du projet, avec Python 3.12 installé et les fichiers bruts présents dans `CMAPSSData/`, utiliser PowerShell. La création de `.venv` ne se fait qu'à la première installation :
 
 ```powershell
 py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e '.[dev,models,api,ui,rag,planning]'
+.\.venv\Scripts\python.exe -m pip install -e '.[dev,models,api,ui,rag,planning,agentic,mcp]'
 ```
 
-Le [snapshot Python 3.12](requirements-lock-win-py312.txt) conserve les versions exactes utilisées pour les jalons 1 à 3. Pour les réinstaller sans recalculer les dépendances :
+Le [snapshot Python 3.12](requirements-lock-win-py312.txt) conserve les versions exactes de l'environnement local, y compris LangGraph et MCP. Pour les réinstaller sans recalculer les dépendances :
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements-lock-win-py312.txt
 .\.venv\Scripts\python.exe -m pip install --no-deps -e .
 ```
 
-L'installation portable ajoute les outils de test, PyTorch, Transformers, MLflow, FastAPI, Uvicorn, Streamlit, pypdf, Sentence Transformers et OR-Tools.
+L'installation portable ajoute les outils de test, PyTorch, Transformers, MLflow, FastAPI, Uvicorn, Streamlit, pypdf, Sentence Transformers, OR-Tools, LangGraph, son checkpointer SQLite et le SDK MCP.
 
 Reconstruire les données, exécuter le notebook, entraîner les candidats, puis reproduire le réentraînement et l'évaluation finale :
 
@@ -309,6 +362,7 @@ Reconstruire les données, exécuter le notebook, entraîner les candidats, puis
 .\.venv\Scripts\python.exe -m industrial_maintenance.rag_generation_evaluation --config configs/rag.toml
 .\.venv\Scripts\plan-maintenance.exe --config configs/maintenance_planning.toml data/scenarios/maintenance/constrained_load.json
 .\.venv\Scripts\evaluate-maintenance-planning.exe --config configs/maintenance_planning.toml
+.\.venv\Scripts\run-maintenance-agent.exe --api-config configs/api.toml --agent-config configs/agent.toml run-csv examples/fd001_demo_engine_3.csv --incident-id demo-fd001-003 --actions sensor_trends predict_rul
 ```
 
 La commande `train-fd001` lit uniquement les artefacts préparés à partir de `train_FD001.txt`. Elle écrit les modèles de sélection dans `artifacts/models/FD001/`, les résultats de validation dans `reports/fd001/models/` et les expériences MLflow locales dans `mlruns/`. La commande `evaluate-fd001` vérifie l'empreinte du résumé de sélection gelé, réentraîne le LSTM pendant six époques sur les 100 moteurs train, puis écrit le bundle V1 dans `artifacts/models/FD001/final/` et le bilan dans `reports/fd001/test/`. Les deux commandes `safety` n'ouvrent aucun fichier de test officiel ; elles écrivent la V2 dans `artifacts/models/FD001/safety_v2/` et `reports/fd001/safety_v2/`.
@@ -334,16 +388,16 @@ Exécuter les contrôles automatisés :
 .\.venv\Scripts\python.exe -m ruff check .
 ```
 
-Les tests utilisent de petites trajectoires et flottes synthétiques. Ils couvrent notamment les fuites entre moteurs, la causalité des fenêtres, le rechargement des modèles, les schémas HTTP, les citations, l'abstention, l'unicité des interventions, les capacités de l'atelier et des techniciens, les coûts et les scénarios irréalisables. Ils ne nécessitent ni serveur lancé séparément, ni service distant.
+Les tests utilisent de petites trajectoires et flottes synthétiques. Ils couvrent notamment les fuites entre moteurs, la causalité des fenêtres, le rechargement des modèles, les schémas HTTP, les citations, l'abstention, l'unicité des interventions, les capacités de l'atelier et des techniciens, les coûts, les scénarios irréalisables, le routage agentique, les reprises SQLite, les trois décisions humaines et les contrats MCP. Ils ne nécessitent ni serveur lancé séparément, ni service distant.
 
 ## État de finalisation
 
 La première version proposée utilise C-MAPSS FD001 pour le pronostic, un corpus documentaire distinct pour le RAG et des scénarios explicitement simulés pour la planification.
 
-FastAPI expose la double prédiction RUL, la recherche documentaire, la question-réponse sourcée et la comparaison des plannings. Elle applique la marge sérialisée au modèle V2 approprié et retourne les versions des artefacts. Le Dockerfile et la configuration Compose sont présents ; leur exécution doit encore être validée sur une machine disposant de Docker Desktop.
+FastAPI expose la double prédiction RUL, la recherche documentaire, la question-réponse sourcée, la comparaison des plannings et le cycle de vie d'un incident LangGraph supervisé. Elle applique la marge sérialisée au modèle V2 approprié et retourne les versions des artefacts. Le Dockerfile et la configuration Compose sont présents ; leur exécution doit encore être validée sur une machine disposant de Docker Desktop.
 
 Le corpus RAG v1 est sélectionné et gelé dans [`configs/rag_corpus.toml`](configs/rag_corpus.toml). Ses cinq sources produisent 192 passages avec citations. La recherche hybride combine `multilingual-e5-small` et TF-IDF ; sur 25 questions répondables annotées, la bonne référence document-page apparaît dans le top 5 dans **100 %** des cas, dans le top 3 dans 76 % des cas et au premier rang dans 48 % des cas. Qwen3-1.7B génère ensuite une réponse contrainte aux passages ou s'abstient. L'évaluation de mise au point obtient 30/30 décisions correctes et 25/25 références attendues citées ; une évaluation indépendante reste nécessaire avant tout usage réel.
 
-Les six jalons fonctionnels sont réalisés et documentés. Le dépôt contient le rapport de portfolio, le diagramme d'architecture, un scénario de démonstration et les formulations utilisables sur un CV. Les contrôles locaux couvrent les tests, le style, les dépendances et les configurations. La seule validation d'exécution restante concerne Docker Compose sur une machine équipée de Docker Desktop.
+Les six jalons métier et le premier incrément agentique supervisé sont réalisés et documentés. Le dépôt contient le rapport de portfolio, le diagramme d'architecture, un scénario de démonstration et les formulations utilisables sur un CV. Les contrôles locaux couvrent les tests, le style, les dépendances, les configurations et six scénarios contractuels agentiques. La validation d'exécution Docker Compose et une évaluation de bout en bout sur des incidents réservés avec les vrais services restent à produire avant de publier un taux de réussite opérationnel de l'agent.
 
-Les extensions possibles sont l'évaluation sur FD002/FD004, une évaluation RAG indépendante, la calibration d'un intervalle prédictif et le branchement du planificateur sur des calendriers et coûts réels.
+Les extensions possibles sont l'évaluation sur FD002/FD004, une évaluation RAG indépendante, la calibration d'un intervalle prédictif, un benchmark agentique de bout en bout avec les vrais services et le branchement du planificateur sur des calendriers et coûts réels.

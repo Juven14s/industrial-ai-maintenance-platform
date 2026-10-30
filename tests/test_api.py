@@ -51,6 +51,27 @@ def _payload(*cycles: int) -> dict[str, Any]:
     }
 
 
+def _agent_payload(*cycles: int) -> dict[str, Any]:
+    return {
+        "incident_id": "api-agent-007",
+        "message": "Estime la RUL de ce moteur.",
+        "requested_actions": ["predict_rul"],
+        "history": {
+            "unit_id": 7,
+            "observations": [
+                {
+                    "cycle": cycle,
+                    "sensors": {
+                        sensor: float(100 * sensor_index + cycle)
+                        for sensor_index, sensor in enumerate(REQUIRED_SENSORS, start=1)
+                    },
+                }
+                for cycle in cycles
+            ],
+        },
+    }
+
+
 class FakePredictor:
     """Small deterministic substitute for the two serialized model bundles."""
 
@@ -219,9 +240,7 @@ def test_health_reports_loaded_model_versions(client: TestClient, predictor: Fak
     }
 
 
-def test_models_returns_sanitized_predictor_metadata(
-    client: TestClient, predictor: FakePredictor
-):
+def test_models_returns_sanitized_predictor_metadata(client: TestClient, predictor: FakePredictor):
     response = client.get("/models")
 
     assert response.status_code == 200
@@ -497,9 +516,7 @@ def test_predict_rejects_duplicate_gapped_or_unordered_cycles(
     assert predictor.received_frames == []
 
 
-def test_predict_rejects_a_missing_required_sensor(
-    client: TestClient, predictor: FakePredictor
-):
+def test_predict_rejects_a_missing_required_sensor(client: TestClient, predictor: FakePredictor):
     payload = _payload(1)
     del payload["observations"][0]["sensor_11"]
 
@@ -522,9 +539,7 @@ def test_predict_rejects_target_or_unknown_fields(
 
     assert response.status_code == 422
     detail = response.json()["detail"]
-    assert any(
-        item["loc"][-1] == field and item["type"] == "extra_forbidden" for item in detail
-    )
+    assert any(item["loc"][-1] == field and item["type"] == "extra_forbidden" for item in detail)
     assert predictor.received_frames == []
 
 
@@ -592,3 +607,46 @@ def test_predict_maps_inference_input_errors_to_a_structured_422():
         }
     }
     assert len(predictor.received_frames) == 1
+
+
+def test_supervised_agent_run_can_pause_be_read_and_be_approved(client: TestClient):
+    payload = _agent_payload(*range(1, 21))
+
+    started = client.post("/agent/runs", json=payload)
+
+    assert started.status_code == 200
+    assert started.json()["result"]["status"] == "pending_approval"
+    assert started.json()["result"]["rul_prediction"]["decision_value"] == 27.5
+    assert started.json()["interrupts"][0]["kind"] == ("maintenance_recommendation_review")
+
+    current = client.get("/agent/runs/api-agent-007")
+    assert current.status_code == 200
+    assert current.json()["result"] == started.json()["result"]
+
+    duplicate_start = client.post("/agent/runs", json=payload)
+    assert duplicate_start.status_code == 409
+    assert duplicate_start.json()["detail"]["code"] == "agent_run_conflict"
+
+    reviewed = client.post(
+        "/agent/runs/api-agent-007/review",
+        json={"action": "approve", "comment": "Validation humaine de test"},
+    )
+    assert reviewed.status_code == 200
+    assert reviewed.json()["result"]["status"] == "approved"
+    assert reviewed.json()["result"]["final_recommendation"]
+    assert reviewed.json()["interrupts"] == []
+
+    duplicate_review = client.post(
+        "/agent/runs/api-agent-007/review",
+        json={"action": "reject"},
+    )
+    assert duplicate_review.status_code == 409
+    assert duplicate_review.json()["detail"]["code"] == "agent_run_conflict"
+
+
+def test_supervised_agent_route_reports_unavailable_when_dependencies_are_partial():
+    with TestClient(create_app(predictor=FakePredictor())) as partial_client:
+        response = partial_client.get("/agent/runs/unknown")
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["code"] == "agent_unavailable"

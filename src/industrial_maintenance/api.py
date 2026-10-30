@@ -1,4 +1,4 @@
-"""FastAPI service exposing central and conservative FD001 RUL predictions."""
+"""FastAPI service for prediction, grounded support, planning, and supervision."""
 
 from __future__ import annotations
 
@@ -14,6 +14,17 @@ from fastapi import FastAPI, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from industrial_maintenance import __version__
+from industrial_maintenance.agent_contracts import (
+    HumanReviewDecision,
+    MaintenanceAgentRequest,
+    MaintenanceAgentRun,
+)
+from industrial_maintenance.agent_runtime import (
+    AgentRunConflictError,
+    AgentRunNotFoundError,
+    MaintenanceAgentRuntime,
+)
+from industrial_maintenance.agent_workflow import AgentServices
 from industrial_maintenance.document_search import (
     DocumentSearchService,
     read_document_search_config,
@@ -40,6 +51,7 @@ from industrial_maintenance.rag_generation import (
     read_generation_settings,
 )
 from industrial_maintenance.rag_retrieval import SearchResult
+from industrial_maintenance.sensor_trends import SensorTrendService
 
 PositiveInt = Annotated[int, Field(gt=0)]
 NonNegativeInt = Annotated[int, Field(ge=0)]
@@ -276,6 +288,18 @@ class PlanningServiceProtocol(Protocol):
     def plan(self, payload: dict[str, Any]) -> PlanningComparison: ...
 
 
+class AgentRuntimeProtocol(Protocol):
+    def start(self, payload: MaintenanceAgentRequest) -> MaintenanceAgentRun: ...
+
+    def status(self, incident_id: str) -> MaintenanceAgentRun: ...
+
+    def review(
+        self,
+        incident_id: str,
+        decision: HumanReviewDecision,
+    ) -> MaintenanceAgentRun: ...
+
+
 def _unavailable(request: Request) -> PredictorProtocol:
     predictor = getattr(request.app.state, "predictor", None)
     if predictor is None:
@@ -332,15 +356,27 @@ def _planning_unavailable(request: Request) -> PlanningServiceProtocol:
     return planning_service
 
 
+def _agent_unavailable(request: Request) -> AgentRuntimeProtocol:
+    runtime = getattr(request.app.state, "agent_runtime", None)
+    if runtime is None:
+        message = getattr(
+            request.app.state,
+            "agent_load_error",
+            "Supervised maintenance agent is not loaded",
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"code": "agent_unavailable", "message": message},
+        )
+    return runtime
+
+
 def _citation(result: SearchResult) -> str:
     if result.page_start is None:
         return f"{result.title} — {result.section}"
     if result.page_end is None or result.page_end == result.page_start:
         return f"{result.title}, p. {result.page_start} — {result.section}"
-    return (
-        f"{result.title}, pp. {result.page_start}-{result.page_end} — "
-        f"{result.section}"
-    )
+    return f"{result.title}, pp. {result.page_start}-{result.page_end} — {result.section}"
 
 
 def _passage_response(result: SearchResult) -> DocumentPassage:
@@ -366,6 +402,8 @@ def create_app(
     document_search: DocumentSearchProtocol | None = None,
     answer_service: AnswerServiceProtocol | None = None,
     planning_service: PlanningServiceProtocol | None = None,
+    agent_runtime: AgentRuntimeProtocol | None = None,
+    agent_config_path: str | Path = "configs/agent.toml",
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(application: FastAPI):
@@ -377,6 +415,9 @@ def create_app(
         application.state.answer_load_error = None
         application.state.planning_service = planning_service
         application.state.planning_load_error = None
+        application.state.agent_runtime = agent_runtime
+        application.state.agent_load_error = None
+        created_agent_runtime: MaintenanceAgentRuntime | None = None
         if predictor is None:
             try:
                 config = read_inference_config(config_path)
@@ -427,7 +468,36 @@ def create_app(
             application.state.planning_load_error = (
                 "Maintenance planning was not configured for this application instance"
             )
-        yield
+        if agent_runtime is None:
+            loaded_predictor = application.state.predictor
+            loaded_answers = application.state.answer_service
+            loaded_planner = application.state.planning_service
+            if all(
+                value is not None for value in (loaded_predictor, loaded_answers, loaded_planner)
+            ):
+                try:
+                    required_sensors = tuple(loaded_predictor.model_info()["required_sensors"])
+                    created_agent_runtime = MaintenanceAgentRuntime(
+                        AgentServices(
+                            predictor=loaded_predictor,
+                            trends=SensorTrendService(required_sensors),
+                            answers=loaded_answers,
+                            planner=loaded_planner,
+                        ),
+                        config_path=agent_config_path,
+                    )
+                    application.state.agent_runtime = created_agent_runtime
+                except (OSError, RuntimeError, TypeError, ValueError) as exc:
+                    application.state.agent_load_error = str(exc)
+            else:
+                application.state.agent_load_error = (
+                    "Prediction, grounded answers, and planning must all be available"
+                )
+        try:
+            yield
+        finally:
+            if created_agent_runtime is not None:
+                created_agent_runtime.close()
 
     application = FastAPI(
         title="Industrial AI Maintenance API",
@@ -435,7 +505,8 @@ def create_app(
         description=(
             "Prédit une RUL centrale et une RUL conservatrice. La valeur conservatrice "
             "est celle destinée aux décisions de maintenance. Le service fournit aussi "
-            "une recherche documentaire sourcée et un planning de flotte simulé."
+            "une recherche documentaire sourcée, un planning de flotte simulé et un "
+            "workflow agentique dont la recommandation exige une validation humaine."
         ),
         lifespan=lifespan,
     )
@@ -550,6 +621,68 @@ def create_app(
             ) from exc
         return MaintenancePlanResponse(**comparison_to_dict(comparison))
 
+    @application.post(
+        "/agent/runs",
+        response_model=MaintenanceAgentRun,
+        tags=["agent"],
+    )
+    def start_agent_run(
+        payload: MaintenanceAgentRequest,
+        request: Request,
+    ) -> MaintenanceAgentRun:
+        runtime = _agent_unavailable(request)
+        try:
+            return runtime.start(payload)
+        except AgentRunConflictError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"code": "agent_run_conflict", "message": str(exc)},
+            ) from exc
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail={"code": "invalid_agent_request", "message": str(exc)},
+            ) from exc
+
+    @application.get(
+        "/agent/runs/{incident_id}",
+        response_model=MaintenanceAgentRun,
+        tags=["agent"],
+    )
+    def get_agent_run(incident_id: str, request: Request) -> MaintenanceAgentRun:
+        runtime = _agent_unavailable(request)
+        try:
+            return runtime.status(incident_id)
+        except AgentRunNotFoundError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "agent_run_not_found", "message": str(exc)},
+            ) from exc
+
+    @application.post(
+        "/agent/runs/{incident_id}/review",
+        response_model=MaintenanceAgentRun,
+        tags=["agent"],
+    )
+    def review_agent_run(
+        incident_id: str,
+        payload: HumanReviewDecision,
+        request: Request,
+    ) -> MaintenanceAgentRun:
+        runtime = _agent_unavailable(request)
+        try:
+            return runtime.review(incident_id, payload)
+        except AgentRunNotFoundError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "agent_run_not_found", "message": str(exc)},
+            ) from exc
+        except AgentRunConflictError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"code": "agent_run_conflict", "message": str(exc)},
+            ) from exc
+
     return application
 
 
@@ -561,9 +694,13 @@ def main() -> int:
     parser.add_argument("--config", default="configs/api.toml")
     parser.add_argument("--host", default=None)
     parser.add_argument("--port", type=int, default=None)
+    parser.add_argument("--agent-config", default="configs/agent.toml")
     arguments = parser.parse_args()
     config = read_inference_config(arguments.config)
-    application = create_app(config_path=arguments.config)
+    application = create_app(
+        config_path=arguments.config,
+        agent_config_path=arguments.agent_config,
+    )
     uvicorn.run(
         application,
         host=arguments.host or config.host,

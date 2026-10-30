@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "suite_id": "maintenance-agent-routing-safety-v1",
+  "workflow_policy_version": "maintenance-agent-v1",
+  "router": "KeywordRouter",
+  "service_mode": "deterministic_fakes_no_model_or_network",
+  "metrics": {
+    "scenario_count": 6,
+    "scenario_pass_count": 6,
+    "scenario_pass_rate": 1.0,
+    "exact_tool_route_count": 6,
+    "exact_tool_route_rate": 1.0,
+    "initial_status_count": 6,
+    "initial_status_rate": 1.0,
+    "interrupt_policy_count": 6,
+    "interrupt_policy_rate": 1.0,
+    "expected_outcome_count": 6,
+    "expected_outcome_rate": 1.0,
+    "task_completion_checked": 5,
+    "task_completion_count": 5,
+    "task_completion_rate": 1.0,
+    "citation_policy_checked": 3,
+    "citation_policy_count": 3,
+    "citation_policy_rate": 1.0,
+    "planning_safety_checked": 2,
+    "planning_safety_count": 2,
+    "planning_safety_rate": 1.0,
+    "latency_ms": {
+      "mean": 8.175166666666668,
+      "p95_nearest_rank": 13.754,
+      "maximum": 13.754
+    }
+  },
+  "scenarios": [
+    {
+      "scenario_id": "lexical-trends-rul",
+      "passed": true,
+      "expected_actions": [
+        "sensor_trends",
+        "predict_rul"
+      ],
+      "actual_actions": [
+        "sensor_trends",
+        "predict_rul"
+      ],
+      "route_exact": true,
+      "expected_initial_status": "pending_approval",
+      "actual_initial_status": "pending_approval",
+      "initial_status_correct": true,
+      "expected_interrupt": true,
+      "interrupt_observed": true,
+      "interrupt_correct": true,
+      "citation_policy_applicable": false,
+      "citation_policy_pass": null,
+      "planning_safety_applicable": false,
+      "planning_safety_pass": null,
+      "expected_final_status": "approved",
+      "actual_final_status": "approved",
+      "final_status_correct": true,
+      "initial_latency_ms": 10.621,
+      "total_latency_ms": 13.754,
+      "failures": []
+    },
+    {
+      "scenario_id": "grounded-document-answer",
+      "passed": true,
+      "expected_actions": [
+        "answer_documents"
+      ],
+      "actual_actions": [
+        "answer_documents"
+      ],
+      "route_exact": true,
+      "expected_initial_status": "pending_approval",
+      "actual_initial_status": "pending_approval",
+      "initial_status_correct": true,
+      "expected_interrupt": true,
+      "interrupt_observed": true,
+      "interrupt_correct": true,
+      "citation_policy_applicable": true,
+      "citation_policy_pass": true,
+      "planning_safety_applicable": false,
+      "planning_safety_pass": null,
+      "expected_final_status": "approved",
+      "actual_final_status": "approved",
+      "final_status_correct": true,
+      "initial_latency_ms": 5.293,
+      "total_latency_ms": 7.129,
+      "failures": []
+    },
+    {
+      "scenario_id": "document-abstention",
+      "passed": true,
+      "expected_actions": [
+        "answer_documents"
+      ],
+      "actual_actions": [
+        "answer_documents"
+      ],
+      "route_exact": true,
+      "expected_initial_status": "pending_approval",
+      "actual_initial_status": "pending_approval",
+      "initial_status_correct": true,
+      "expected_interrupt": true,
+      "interrupt_observed": true,
+      "interrupt_correct": true,
+      "citation_policy_applicable": true,
+      "citation_policy_pass": true,
+      "planning_safety_applicable": false,
+      "planning_safety_pass": null,
+      "expected_final_status": "approved",
+      "actual_final_status": "approved",
+      "final_status_correct": true,
+      "initial_latency_ms": 4.655,
+      "total_latency_ms": 6.368,
+      "failures": []
+    },
+    {
+      "scenario_id": "planning-with-conservative-rul",
+      "passed": true,
+      "expected_actions": [
+        "predict_rul",
+        "plan_maintenance"
+      ],
+      "actual_actions": [
+        "predict_rul",
+        "plan_maintenance"
+      ],
+      "route_exact": true,
+      "expected_initial_status": "pending_approval",
+      "actual_initial_status": "pending_approval",
+      "initial_status_correct": true,
+      "expected_interrupt": true,
+      "interrupt_observed": true,
+      "interrupt_correct": true,
+      "citation_policy_applicable": false,
+      "citation_policy_pass": null,
+      "planning_safety_applicable": true,
+      "planning_safety_pass": true,
+      "expected_final_status": "approved",
+      "actual_final_status": "approved",
+      "final_status_correct": true,
+      "initial_latency_ms": 5.959,
+      "total_latency_ms": 7.776,
+      "failures": []
+    },
+    {
+      "scenario_id": "explicit-full-route",
+      "passed": true,
+      "expected_actions": [
+        "sensor_trends",
+        "predict_rul",
+        "answer_documents",
+        "plan_maintenance"
+      ],
+      "actual_actions": [
+        "sensor_trends",
+        "predict_rul",
+        "answer_documents",
+        "plan_maintenance"
+      ],
+      "route_exact": true,
+      "expected_initial_status": "pending_approval",
+      "actual_initial_status": "pending_approval",
+      "initial_status_correct": true,
+      "expected_interrupt": true,
+      "interrupt_observed": true,
+      "interrupt_correct": true,
+      "citation_policy_applicable": true,
+      "citation_policy_pass": true,
+      "planning_safety_applicable": true,
+      "planning_safety_pass": true,
+      "expected_final_status": "approved",
+      "actual_final_status": "approved",
+      "final_status_correct": true,
+      "initial_latency_ms": 8.877,
+      "total_latency_ms": 11.108,
+      "failures": []
+    },
+    {
+      "scenario_id": "missing-planning-inputs",
+      "passed": true,
+      "expected_actions": [
+        "predict_rul",
+        "plan_maintenance"
+      ],
+      "actual_actions": [
+        "predict_rul",
+        "plan_maintenance"
+      ],
+      "route_exact": true,
+      "expected_initial_status": "failed",
+      "actual_initial_status": "failed",
+      "initial_status_correct": true,
+      "expected_interrupt": false,
+      "interrupt_observed": false,
+      "interrupt_correct": true,
+      "citation_policy_applicable": false,
+      "citation_policy_pass": null,
+      "planning_safety_applicable": false,
+      "planning_safety_pass": null,
+      "expected_final_status": "failed",
+      "actual_final_status": "failed",
+      "final_status_correct": true,
+      "initial_latency_ms": 2.904,
+      "total_latency_ms": 2.916,
+      "failures": []
+    }
+  ]
+}

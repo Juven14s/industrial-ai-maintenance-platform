@@ -16,7 +16,7 @@ Livrables disponibles :
 - [Dictionnaire des données](DICTIONNAIRE_DONNEES.md) et [manifeste des fichiers bruts](../reports/dataset_manifest.json).
 - [Configuration de préparation](../configs/fd001.toml) et [rapport FD001](../reports/fd001/PREPARATION_FD001.md).
 - Préparation dans `src/industrial_maintenance/`, données dérivées dans `data/processed/FD001/` et tests dans `tests/`.
-- [Commandes Windows de reproduction, d'exécution du notebook, des modèles, de l'API et des tests](../README.md#reproduire-les-jalons-1-à-5-sous-windows).
+- [Commandes Windows de reproduction, d'exécution du notebook, des modèles, de l'API et des tests](../README.md#reproduire-les-jalons-1-à-7-sous-windows).
 
 Critère de passage atteint : la préparation est exécutable depuis les fichiers bruts, avec groupes disjoints, prétraitement appris sur les seuls moteurs d'apprentissage et sorties traçables. À l'issue de ce jalon, le test officiel restait réservé au bilan final.
 
@@ -38,7 +38,7 @@ Sa RMSE est inférieure de 7,774 cycles, soit 25,1 %, à celle du meilleur Rando
 
 Livrables disponibles :
 
-- [Configuration d'entraînement](../configs/fd001_models.toml) et commande `train-fd001` documentée dans le [README](../README.md#reproduire-les-jalons-1-à-5-sous-windows).
+- [Configuration d'entraînement](../configs/fd001_models.toml) et commande `train-fd001` documentée dans le [README](../README.md#reproduire-les-jalons-1-à-7-sous-windows).
 - [Rapport de comparaison](../reports/fd001/models/MODEL_COMPARISON.md), [tableau des métriques](../reports/fd001/models/comparison.csv) et [prédictions par moteur](../reports/fd001/models/validation_predictions.csv).
 - [Figures de validation](../reports/fd001/models/figures/) et résumé structuré des expériences.
 - Suivi MLflow local avec une base SQLite et artefacts rechargeables sur CPU.
@@ -115,13 +115,29 @@ Livrables disponibles : [rapport technique synthétique](../reports/PROJECT_REPO
 
 Le scénario de démonstration charge un historique, obtient une RUL, interroge la documentation avec ses sources, puis compare deux plannings de la flotte simulée. Il rappelle les limites à chaque étape sans confondre pronostic, diagnostic et prescription.
 
+## Jalon 7 — Orchestration agentique supervisée
+
+**Avancement : premier incrément fonctionnel et benchmark contractuel déterministe réalisés ; évaluation de bout en bout sur des incidents réservés encore à produire.**
+
+Le workflow LangGraph traite un incident avec quatre actions réutilisant les services existants : tendances descriptives des capteurs, prédiction RUL, réponse documentaire et planification. Un routeur lexical déterministe ou une liste `requested_actions` fixe la route. Qwen3-1.7B reste limité à la génération documentaire et ne sélectionne pas les outils. L'ordre d'exécution est stable ; toute planification ajoute la prédiction préalable et utilise exclusivement la RUL conservatrice.
+
+L'état est typé et persisté dans SQLite par `incident_id`. Le graphe transforme les erreurs métier attendues en résultats structurés, retente uniquement les erreurs explicitement transitoires et s'interrompt avant toute finalisation. Une personne doit approuver, éditer ou rejeter le brouillon. Un incident en attente ne peut pas être remplacé silencieusement par un nouveau lancement.
+
+Les routes `POST /agent/runs`, `GET /agent/runs/{incident_id}` et `POST /agent/runs/{incident_id}/review` exposent ce cycle de vie. La commande `run-maintenance-agent run-csv` construit directement l'historique imbriqué depuis un CSV C-MAPSS. Le dashboard rend le brouillon, les sorties d'outils, les citations, la trace et la décision humaine accessibles sans JSON.
+
+Un serveur MCP autonome publie cinq outils structurés — prédiction, tendances, recherche, réponse et planification — ainsi que cinq ressources de métadonnées publiques. Il injecte les services métier au démarrage et ne charge aucun modèle lors de l'import du module. Le lancement en processus séparé recharge toutefois ses propres modèles ; MCP n'est donc pas un troisième service Compose par défaut.
+
+Livrables disponibles : [configuration agentique](../configs/agent.toml), [contrats](../src/industrial_maintenance/agent_contracts.py), [workflow](../src/industrial_maintenance/agent_workflow.py), [checkpoints](../src/industrial_maintenance/agent_checkpoint.py), [runtime](../src/industrial_maintenance/agent_runtime.py), [CLI](../src/industrial_maintenance/agent_cli.py), [adaptateur MCP](../src/industrial_maintenance/mcp_server.py), [six scénarios versionnés](../evals/agent_scenarios.json), [rapport d'orchestration](../reports/agent/ORCHESTRATION_EVALUATION.md), intégration FastAPI et tests déterministes.
+
+Le critère de fonctionnement est atteint : routage, ordre des outils, reprise SQLite, approbation/édition/rejet, citations et usage obligatoire de la RUL conservatrice sont testés. Le harnais contractuel obtient 6/6 scénarios conformes, 3/3 politiques de citation ou d'abstention et 2/2 règles de sûreté planning. Il utilise toutefois des services factices sans modèle ni réseau. Ces résultats peuvent être présentés comme validation du contrat logiciel, jamais comme taux de réussite industriel. Le critère portfolio complet exigera une évaluation réservée de bout en bout avec les vrais services.
+
 ## Mise en valeur sur le CV et en entretien
 
 Le projet peut désormais être présenté comme un **projet personnel réalisé**, en précisant que la validation Docker reste à effectuer.
 
 Formulation utilisable pendant la réalisation :
 
-> Industrial AI Maintenance Platform — Projet personnel sur NASA C-MAPSS : comparaison Random Forest/LSTM, modèle quantile conservateur réduisant les surestimations à 5,1 % en validation croisée, RAG local avec réponses citées et abstention, puis planification sous contraintes par OR-Tools CP-SAT, exposés via FastAPI et Streamlit.
+> Industrial AI Maintenance Platform — Projet personnel sur NASA C-MAPSS : comparaison Random Forest/LSTM, modèle quantile conservateur réduisant les surestimations à 5,1 % en validation croisée, RAG local avec réponses citées et abstention, planification OR-Tools CP-SAT, puis orchestration supervisée sous LangGraph avec checkpoints SQLite, validation humaine et outils MCP.
 
 Quatre résultats peuvent être cités avec leur contexte : **RMSE de 20,986 cycles et MAE de 14,233 cycles sur les 100 moteurs du test officiel FD001 pour la V1**, **5,1 % de surestimations en validation croisée par moteur pour la RUL conservatrice V2**, **30/30 décisions et 25/25 références attendues correctes sur le jeu de mise au point RAG**, puis **33,5 % de réduction du coût sur un scénario de planification simulé contraint**. Il faut expliciter le compromis de la V2, la portée non indépendante de l'évaluation RAG et le caractère entièrement simulé du gain de planification.
 
@@ -132,4 +148,5 @@ Questions auxquelles le dépôt et la présentation doivent permettre de répond
 - Le LSTM apporte-t-il un gain par rapport à un modèle plus simple ?
 - Comment vérifier qu'une réponse RAG est effectivement soutenue par ses citations ?
 - Quelle fonction l'optimiseur minimise-t-il, et quelles hypothèses de simulation utilise-t-il ?
+- Pourquoi le routeur agentique est-il déterministe, et quels garde-fous empêchent une recommandation autonome ?
 - Quelles commandes permettent de reproduire les résultats et de lancer la démonstration ?

@@ -1,14 +1,15 @@
 """Tests for the Streamlit dashboard's data and HTTP boundary helpers.
 
-These tests deliberately exercise the framework-independent functions in
-``industrial_maintenance.dashboard``.  Streamlit rendering itself is kept out
-of unit tests: the important contract is that a user-selected trajectory is
-validated and translated into the exact JSON expected by the FastAPI service.
+Most tests exercise the framework-independent functions in
+``industrial_maintenance.dashboard``.  One lightweight Streamlit smoke test
+also ensures that the complete page, including human review, renders without
+requiring a separately running API.
 """
 
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -20,7 +21,9 @@ from industrial_maintenance.dashboard import (
     DashboardInputError,
     DashboardServiceError,
     MaintenanceApiClient,
+    build_agent_history_payload,
     build_prediction_payload,
+    normalize_incident_id,
     prediction_cutoffs,
     prepare_engine_history,
     validate_source_frame,
@@ -185,13 +188,10 @@ def test_build_prediction_payload_contains_only_required_api_fields() -> None:
 
     assert payload["unit_id"] == 2
     assert len(payload["observations"]) == 35
-    assert [observation["cycle"] for observation in payload["observations"]] == list(
-        range(1, 36)
-    )
+    assert [observation["cycle"] for observation in payload["observations"]] == list(range(1, 36))
     expected_observation_keys = {"cycle", *REQUIRED_SENSORS}
     assert all(
-        set(observation) == expected_observation_keys
-        for observation in payload["observations"]
+        set(observation) == expected_observation_keys for observation in payload["observations"]
     )
     assert all("rul" not in observation for observation in payload["observations"])
 
@@ -215,6 +215,20 @@ def test_build_prediction_payload_returns_native_json_numbers() -> None:
     )
 
 
+def test_build_agent_history_payload_nests_only_required_sensors() -> None:
+    history = prepare_engine_history(_source_frame(), unit_id=2, end_cycle=30)
+
+    payload = build_agent_history_payload(history)
+
+    assert payload["unit_id"] == 2
+    assert len(payload["observations"]) == 30
+    assert payload["observations"][0]["cycle"] == 1
+    assert set(payload["observations"][0]) == {"cycle", "sensors"}
+    assert set(payload["observations"][0]["sensors"]) == set(REQUIRED_SENSORS)
+    assert "rul" not in payload["observations"][0]["sensors"]
+    json.dumps(payload)
+
+
 class _FakeResponse:
     def __init__(
         self,
@@ -224,11 +238,7 @@ class _FakeResponse:
         raw_body: bytes | None = None,
     ) -> None:
         self.status = status_code
-        self._body = (
-            raw_body
-            if raw_body is not None
-            else json.dumps(payload).encode("utf-8")
-        )
+        self._body = raw_body if raw_body is not None else json.dumps(payload).encode("utf-8")
 
     def __enter__(self) -> "_FakeResponse":
         return self
@@ -240,7 +250,9 @@ class _FakeResponse:
         return self._body
 
 
-def test_api_client_predict_posts_payload_to_normalized_url(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_api_client_predict_posts_payload_to_normalized_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     sent: dict[str, Any] = {}
     expected = {
         "unit_id": 1,
@@ -347,6 +359,100 @@ def test_api_client_posts_maintenance_scenario(monkeypatch: pytest.MonkeyPatch) 
     }
 
 
+def test_api_client_starts_reads_and_reviews_supervised_agent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sent: list[dict[str, Any]] = []
+    responses = [
+        {"result": {"status": "pending_approval"}, "interrupts": [{}]},
+        {"result": {"status": "pending_approval"}, "interrupts": [{}]},
+        {"result": {"status": "approved"}, "interrupts": []},
+    ]
+
+    def fake_urlopen(request: Any, *, timeout: float) -> _FakeResponse:
+        sent.append(
+            {
+                "url": request.full_url,
+                "method": request.get_method(),
+                "json": (
+                    None if request.data is None else json.loads(request.data.decode("utf-8"))
+                ),
+                "timeout": timeout,
+            }
+        )
+        return _FakeResponse(status_code=200, payload=responses[len(sent) - 1])
+
+    import urllib.request
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    client = MaintenanceApiClient("http://api.test", timeout=30)
+    start_payload = {
+        "incident_id": "incident:7-fragile",
+        "message": "Analyse ce moteur.",
+        "requested_actions": ["sensor_trends", "predict_rul"],
+    }
+
+    started = client.start_agent(start_payload)
+    current = client.get_agent("incident:7-fragile")
+    reviewed = client.review_agent(
+        "incident:7-fragile",
+        {"action": "approve", "comment": "Vérifié"},
+    )
+
+    assert started["result"]["status"] == "pending_approval"
+    assert current["result"]["status"] == "pending_approval"
+    assert reviewed["result"]["status"] == "approved"
+    encoded_path = "/agent/runs/incident%3A7-fragile"
+    assert sent == [
+        {
+            "url": "http://api.test/agent/runs",
+            "method": "POST",
+            "json": start_payload,
+            "timeout": 30.0,
+        },
+        {
+            "url": "http://api.test" + encoded_path,
+            "method": "GET",
+            "json": None,
+            "timeout": 30.0,
+        },
+        {
+            "url": "http://api.test" + encoded_path + "/review",
+            "method": "POST",
+            "json": {"action": "approve", "comment": "Vérifié"},
+            "timeout": 30.0,
+        },
+    ]
+
+
+def test_api_client_rejects_blank_agent_incident() -> None:
+    client = MaintenanceApiClient("http://api.test")
+
+    with pytest.raises(ValueError, match="identifiant"):
+        client.get_agent("   ")
+
+
+@pytest.mark.parametrize("value", ["incident/7", "incident 7", "-incident"])
+def test_incident_identifier_rejects_path_unsafe_values(value: str) -> None:
+    with pytest.raises(ValueError, match="uniquement"):
+        normalize_incident_id(value)
+
+
+def test_streamlit_app_renders_supervised_agent_section() -> None:
+    from streamlit.testing.v1 import AppTest
+
+    app_path = Path(__file__).resolve().parents[1] / "src/industrial_maintenance/dashboard_app.py"
+    app = AppTest.from_file(
+        app_path,
+        default_timeout=20,
+    ).run()
+
+    assert len(app.exception) == 0
+    assert "6. Lancer une analyse supervisée de l'incident" in [
+        item.value for item in app.subheader
+    ]
+
+
 def test_api_client_health_uses_get_without_network(monkeypatch: pytest.MonkeyPatch) -> None:
     sent: dict[str, Any] = {}
 
@@ -405,9 +511,7 @@ def test_api_client_translates_connection_error(monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setattr(urllib.request, "urlopen", fail_urlopen)
 
     with pytest.raises(DashboardServiceError, match="(?i)api|connexion|joindre"):
-        MaintenanceApiClient("http://api.test").predict(
-            {"unit_id": 1, "observations": []}
-        )
+        MaintenanceApiClient("http://api.test").predict({"unit_id": 1, "observations": []})
 
 
 def test_api_client_exposes_api_validation_message(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -416,9 +520,7 @@ def test_api_client_exposes_api_validation_message(monkeypatch: pytest.MonkeyPat
     from io import BytesIO
 
     def invalid_request(request: Any, *, timeout: float) -> None:
-        body = json.dumps(
-            {"detail": {"message": "Cycles non consécutifs"}}
-        ).encode("utf-8")
+        body = json.dumps({"detail": {"message": "Cycles non consécutifs"}}).encode("utf-8")
         raise urllib.error.HTTPError(
             request.full_url,
             422,
@@ -430,9 +532,7 @@ def test_api_client_exposes_api_validation_message(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(urllib.request, "urlopen", invalid_request)
 
     with pytest.raises(DashboardServiceError, match="Cycles non consécutifs") as exc_info:
-        MaintenanceApiClient("http://api.test").predict(
-            {"unit_id": 1, "observations": []}
-        )
+        MaintenanceApiClient("http://api.test").predict({"unit_id": 1, "observations": []})
 
     assert exc_info.value.status_code == 422
 
@@ -449,6 +549,4 @@ def test_api_client_rejects_invalid_json_response(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(urllib.request, "urlopen", invalid_json)
 
     with pytest.raises(DashboardServiceError, match="(?i)json|réponse"):
-        MaintenanceApiClient("http://api.test").predict(
-            {"unit_id": 1, "observations": []}
-        )
+        MaintenanceApiClient("http://api.test").predict({"unit_id": 1, "observations": []})

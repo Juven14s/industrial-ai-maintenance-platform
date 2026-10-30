@@ -1,0 +1,7 @@
+[workflow]
+policy_version = "maintenance-agent-v1"
+max_retry_attempts = 3
+human_approval_required = true
+
+[checkpoint]
+path = "data/processed/agent/checkpoints.sqlite3"

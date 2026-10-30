@@ -16,8 +16,10 @@ from industrial_maintenance.dashboard import (
     DashboardInputError,
     DashboardServiceError,
     MaintenanceApiClient,
+    build_agent_history_payload,
     build_prediction_payload,
     find_default_demo_data,
+    normalize_incident_id,
     prediction_cutoffs,
     prepare_engine_history,
     validate_source_frame,
@@ -173,9 +175,7 @@ def _render_plan_result(result: dict[str, Any]) -> None:
                     "cost",
                 ]
                 st.dataframe(frame.loc[:, display_columns], hide_index=True, width="stretch")
-                chart = frame.assign(
-                    engine=frame["unit_id"].map(lambda value: f"Moteur {value}")
-                )
+                chart = frame.assign(engine=frame["unit_id"].map(lambda value: f"Moteur {value}"))
                 st.vega_lite_chart(
                     chart,
                     {
@@ -208,14 +208,121 @@ def _render_plan_result(result: dict[str, Any]) -> None:
                 st.write("Aucune intervention planifiée.")
             if plan.get("unscheduled_unit_ids"):
                 st.warning(
-                    "Moteurs non planifiés : "
-                    + ", ".join(map(str, plan["unscheduled_unit_ids"]))
+                    "Moteurs non planifiés : " + ", ".join(map(str, plan["unscheduled_unit_ids"]))
                 )
             if plan.get("deferred_unit_ids"):
                 st.info(
-                    "Hors de l'horizon actuel : "
-                    + ", ".join(map(str, plan["deferred_unit_ids"]))
+                    "Hors de l'horizon actuel : " + ", ".join(map(str, plan["deferred_unit_ids"]))
                 )
+
+
+def _render_agent_run(run: dict[str, Any]) -> str:
+    """Render one structured agent snapshot and return its incident identifier."""
+
+    try:
+        result = run["result"]
+        interrupts = run["interrupts"]
+        incident_id = str(result["incident_id"])
+        status = str(result["status"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise DashboardServiceError("La réponse de l'assistant est incomplète.") from exc
+    if not isinstance(result, dict) or not isinstance(interrupts, list):
+        raise DashboardServiceError("La réponse de l'assistant est invalide.")
+
+    status_labels = {
+        "running": "en cours",
+        "failed": "échec contrôlé",
+        "pending_approval": "en attente de validation humaine",
+        "approved": "approuvée",
+        "edited": "modifiée puis approuvée",
+        "rejected": "rejetée",
+    }
+    st.markdown(f"**Incident `{incident_id}` — {status_labels.get(status, status)}**")
+
+    errors = result.get("errors", [])
+    if errors:
+        for error in errors:
+            if isinstance(error, dict):
+                st.error(
+                    f"{error.get('node', 'workflow')} · "
+                    f"{error.get('category', 'erreur')} : {error.get('message', '')}"
+                )
+
+    route = result.get("route")
+    if isinstance(route, dict):
+        actions = route.get("actions", [])
+        if isinstance(actions, list):
+            st.caption("Outils exécutés : " + " → ".join(map(str, actions)))
+        rationale = route.get("rationale")
+        if isinstance(rationale, str) and rationale:
+            st.caption(f"Routage : {rationale}")
+
+    draft = result.get("draft_recommendation")
+    if isinstance(draft, str) and draft:
+        st.info(f"**Brouillon à vérifier**\n\n{draft}")
+
+    trends = result.get("trend_summary")
+    if isinstance(trends, dict):
+        with st.expander("Tendances descriptives des capteurs", expanded=True):
+            strongest = trends.get("strongest_changes", [])
+            if isinstance(strongest, list) and strongest:
+                st.write("Variations les plus marquées : " + ", ".join(map(str, strongest)))
+            sensors = trends.get("sensors", [])
+            if isinstance(sensors, list) and sensors:
+                trend_frame = pd.DataFrame(sensors)
+                columns = [
+                    name
+                    for name in (
+                        "sensor",
+                        "global_direction",
+                        "recent_direction",
+                        "global_slope_per_cycle",
+                        "recent_slope_per_cycle",
+                        "trend_score",
+                    )
+                    if name in trend_frame.columns
+                ]
+                st.dataframe(trend_frame.loc[:, columns], hide_index=True, width="stretch")
+            limitation = trends.get("limitation")
+            if isinstance(limitation, str):
+                st.caption(limitation)
+
+    prediction = result.get("rul_prediction")
+    if isinstance(prediction, dict):
+        with st.expander("Prédiction de RUL", expanded=True):
+            try:
+                central = float(prediction["rul_estimate"])
+                conservative = float(prediction["decision_value"])
+            except (KeyError, TypeError, ValueError) as exc:
+                raise DashboardServiceError(
+                    "La prédiction renvoyée par l'assistant est incomplète."
+                ) from exc
+            left, right = st.columns(2)
+            left.metric("RUL centrale", f"{central:.1f} cycles")
+            right.metric("RUL conservatrice de décision", f"{conservative:.1f} cycles")
+
+    document_answer = result.get("document_answer")
+    if isinstance(document_answer, dict):
+        st.markdown("#### Réponse documentaire et sources")
+        _render_document_answer(document_answer)
+
+    planning_result = result.get("planning_result")
+    if isinstance(planning_result, dict):
+        st.markdown("#### Planning calculé")
+        _render_plan_result(planning_result)
+
+    final = result.get("final_recommendation")
+    if isinstance(final, str) and final:
+        st.success(f"**Recommandation finale validée**\n\n{final}")
+    elif status == "rejected":
+        st.warning("La recommandation a été rejetée ; aucune sortie finale n'est publiée.")
+
+    trace = result.get("trace", [])
+    with st.expander("Trace technique et état brut"):
+        if isinstance(trace, list):
+            st.code(" → ".join(map(str, trace)), language="text")
+        st.json(run)
+    return incident_id
 
 
 def render() -> None:
@@ -280,11 +387,7 @@ def render() -> None:
     source_name = ""
     if source == "Démonstration FD001":
         configured_demo = os.environ.get("MAINTENANCE_DEMO_DATA")
-        demo_path = (
-            Path(configured_demo).resolve()
-            if configured_demo
-            else find_default_demo_data()
-        )
+        demo_path = Path(configured_demo).resolve() if configured_demo else find_default_demo_data()
         if demo_path is None or not demo_path.is_file():
             st.error(
                 "Aucune trajectoire de démonstration n'est disponible. "
@@ -489,9 +592,30 @@ def render() -> None:
                 "criticality": "high",
                 "preventive_cost": 650,
             },
-            {"unit_id": 1002, "conservative_rul": 12.0, "maintenance_duration": 3, "technicians_required": 1, "criticality": "medium", "preventive_cost": 500},
-            {"unit_id": 1003, "conservative_rul": 18.0, "maintenance_duration": 4, "technicians_required": 2, "criticality": "high", "preventive_cost": 680},
-            {"unit_id": 1004, "conservative_rul": 24.0, "maintenance_duration": 2, "technicians_required": 1, "criticality": "low", "preventive_cost": 430},
+            {
+                "unit_id": 1002,
+                "conservative_rul": 12.0,
+                "maintenance_duration": 3,
+                "technicians_required": 1,
+                "criticality": "medium",
+                "preventive_cost": 500,
+            },
+            {
+                "unit_id": 1003,
+                "conservative_rul": 18.0,
+                "maintenance_duration": 4,
+                "technicians_required": 2,
+                "criticality": "high",
+                "preventive_cost": 680,
+            },
+            {
+                "unit_id": 1004,
+                "conservative_rul": 24.0,
+                "maintenance_duration": 2,
+                "technicians_required": 1,
+                "criticality": "low",
+                "preventive_cost": 430,
+            },
         ]
     )
     edited_fleet = st.data_editor(
@@ -558,6 +682,231 @@ def render() -> None:
             _render_plan_result(stored_plan)
         except DashboardServiceError as exc:
             st.error(str(exc))
+
+    st.divider()
+    st.subheader("6. Lancer une analyse supervisée de l'incident")
+    st.write(
+        "L'assistant orchestre les briques déjà testées, prépare un brouillon puis "
+        "s'arrête obligatoirement avant publication. Tu gardes la décision finale."
+    )
+    incident_columns = st.columns([1, 2])
+    incident_id = incident_columns[0].text_input(
+        "Identifiant de l'incident",
+        value=f"dashboard-{int(unit_id)}-{int(end_cycle)}",
+        key="maintenance_agent_incident_id",
+    )
+    agent_message = incident_columns[1].text_area(
+        "Demande à l'assistant",
+        value="Analyse les tendances des capteurs et estime la RUL de ce moteur.",
+        height=96,
+        key="maintenance_agent_message",
+    )
+    action_labels = {
+        "sensor_trends": "Décrire les tendances capteurs",
+        "predict_rul": "Estimer la RUL",
+        "answer_documents": "Interroger la documentation",
+        "plan_maintenance": "Proposer un planning simulé",
+    }
+    agent_actions = st.multiselect(
+        "Outils autorisés pour cet incident",
+        options=list(action_labels),
+        default=["sensor_trends", "predict_rul"],
+        format_func=lambda action: action_labels[action],
+        key="maintenance_agent_actions",
+    )
+    agent_question = None
+    if "answer_documents" in agent_actions:
+        agent_question = st.text_input(
+            "Question documentaire à sourcer",
+            value="Que décrit la documentation sur la dégradation dans C-MAPSS ?",
+            key="maintenance_agent_question",
+        )
+    if "plan_maintenance" in agent_actions:
+        st.caption(
+            "Le contexte reprend la flotte et les ressources de l'étape 5. Pour le moteur "
+            "courant, le graphe remplacera toute valeur saisie par sa propre RUL conservatrice."
+        )
+
+    if st.button(
+        "Préparer la recommandation supervisée",
+        type="primary",
+        disabled=not api_ready or not agent_actions,
+        width="stretch",
+        key="maintenance_agent_start",
+    ):
+        try:
+            normalized_incident = normalize_incident_id(incident_id)
+            normalized_message = agent_message.strip()
+            if len(normalized_message) < 3:
+                raise DashboardInputError("La demande doit contenir au moins trois caractères.")
+            payload: dict[str, Any] = {
+                "incident_id": normalized_incident,
+                "message": normalized_message,
+                "history": build_agent_history_payload(history),
+                "requested_actions": list(agent_actions),
+            }
+            if "answer_documents" in agent_actions:
+                normalized_question = (agent_question or "").strip()
+                if len(normalized_question) < 3:
+                    raise DashboardInputError(
+                        "La question documentaire doit contenir au moins trois caractères."
+                    )
+                payload["question"] = normalized_question
+            if "plan_maintenance" in agent_actions:
+                if edited_fleet.empty or edited_fleet.isna().any().any():
+                    raise DashboardInputError("La flotte doit contenir des lignes complètes.")
+                fleet = edited_fleet.copy()
+                fleet["unit_id"] = fleet["unit_id"].astype(int)
+                if fleet["unit_id"].duplicated().any():
+                    raise DashboardInputError(
+                        "Chaque moteur doit apparaître une seule fois dans la flotte."
+                    )
+                current_rows = fleet.loc[fleet["unit_id"] == int(unit_id)]
+                if len(current_rows) != 1:
+                    raise DashboardInputError(
+                        "La flotte doit contenir exactement une ligne pour le moteur courant."
+                    )
+                current = current_rows.iloc[0]
+                other_engines = []
+                for row in fleet.loc[fleet["unit_id"] != int(unit_id)].to_dict(orient="records"):
+                    other_engines.append(
+                        {
+                            "unit_id": int(row["unit_id"]),
+                            "conservative_rul": float(row["conservative_rul"]),
+                            "maintenance_duration": int(row["maintenance_duration"]),
+                            "technicians_required": int(row["technicians_required"]),
+                            "criticality": str(row["criticality"]),
+                            "preventive_cost": int(row["preventive_cost"]),
+                        }
+                    )
+                payload["planning"] = {
+                    "scenario_id": f"agent-{normalized_incident}",
+                    "description": "Scénario supervisé depuis le dashboard",
+                    "planning_horizon": int(horizon),
+                    "technicians": int(technicians),
+                    "workshop_capacity": int(capacity),
+                    "maintenance_duration": int(current["maintenance_duration"]),
+                    "technicians_required": int(current["technicians_required"]),
+                    "criticality": str(current["criticality"]),
+                    "preventive_cost": int(current["preventive_cost"]),
+                    "other_engines": other_engines,
+                }
+            timeout = 180.0 if "answer_documents" in agent_actions else 30.0
+            with st.spinner("Exécution des outils et préparation du brouillon..."):
+                agent_run = MaintenanceApiClient(api_url, timeout=timeout).start_agent(payload)
+        except DashboardServiceError as exc:
+            if exc.status_code == 409 and incident_id.strip():
+                try:
+                    existing_run = MaintenanceApiClient(
+                        api_url,
+                        timeout=10.0,
+                    ).get_agent(incident_id)
+                except (DashboardServiceError, ValueError) as refresh_error:
+                    st.error(str(refresh_error))
+                else:
+                    st.session_state["maintenance_agent_run"] = {
+                        "api_url": api_url,
+                        "incident_id": incident_id.strip(),
+                        "value": existing_run,
+                    }
+                    st.warning(
+                        "Cet incident attend déjà une validation humaine. "
+                        "Son checkpoint existant est affiché ci-dessous."
+                    )
+            else:
+                st.error(str(exc))
+        except (DashboardInputError, ValueError) as exc:
+            st.error(str(exc))
+        else:
+            st.session_state["maintenance_agent_run"] = {
+                "api_url": api_url,
+                "incident_id": normalized_incident,
+                "value": agent_run,
+            }
+
+    stored_agent = st.session_state.get("maintenance_agent_run")
+    if isinstance(stored_agent, dict) and stored_agent.get("api_url") == api_url:
+        refresh_column, status_column = st.columns([1, 3])
+        if refresh_column.button(
+            "Actualiser l'état",
+            width="stretch",
+            key="maintenance_agent_refresh",
+        ):
+            try:
+                refreshed = MaintenanceApiClient(api_url, timeout=10.0).get_agent(
+                    str(stored_agent.get("incident_id", ""))
+                )
+            except (DashboardServiceError, ValueError) as exc:
+                st.error(str(exc))
+            else:
+                stored_agent["value"] = refreshed
+                st.session_state["maintenance_agent_run"] = stored_agent
+        status_column.caption(
+            "L'état est relu depuis le checkpoint SQLite de l'API, pas depuis un cache modèle."
+        )
+
+        try:
+            rendered_incident = _render_agent_run(stored_agent["value"])
+        except (KeyError, DashboardServiceError) as exc:
+            st.error(str(exc))
+        else:
+            agent_value = stored_agent["value"]
+            agent_result = agent_value.get("result", {})
+            if (
+                isinstance(agent_result, dict)
+                and agent_result.get("status") == "pending_approval"
+                and agent_value.get("interrupts")
+            ):
+                st.warning(
+                    "Aucune recommandation finale n'existe encore. Relis les sorties ci-dessus "
+                    "avant de prendre une décision."
+                )
+                with st.form("maintenance_agent_review_form"):
+                    review_action = st.radio(
+                        "Décision humaine",
+                        options=("approve", "edit", "reject"),
+                        format_func={
+                            "approve": "Approuver le brouillon",
+                            "edit": "Modifier puis approuver",
+                            "reject": "Rejeter",
+                        }.get,
+                        horizontal=True,
+                    )
+                    review_comment = st.text_input(
+                        "Commentaire de revue (facultatif)",
+                        value="",
+                    )
+                    edited_recommendation = st.text_area(
+                        "Version corrigée (utilisée uniquement si « Modifier » est choisi)",
+                        value=str(agent_result.get("draft_recommendation", "")),
+                        height=150,
+                    )
+                    submit_review = st.form_submit_button(
+                        "Enregistrer la décision humaine",
+                        width="stretch",
+                    )
+                if submit_review:
+                    review_payload: dict[str, Any] = {
+                        "action": review_action,
+                        "comment": review_comment.strip(),
+                    }
+                    if review_action == "edit":
+                        normalized_edit = edited_recommendation.strip()
+                        if len(normalized_edit) < 3:
+                            st.error("La recommandation corrigée est trop courte.")
+                            st.stop()
+                        review_payload["edited_recommendation"] = normalized_edit
+                    try:
+                        reviewed = MaintenanceApiClient(
+                            api_url,
+                            timeout=30.0,
+                        ).review_agent(rendered_incident, review_payload)
+                    except (DashboardServiceError, ValueError) as exc:
+                        st.error(str(exc))
+                    else:
+                        stored_agent["value"] = reviewed
+                        st.session_state["maintenance_agent_run"] = stored_agent
+                        st.rerun()
 
 
 render()

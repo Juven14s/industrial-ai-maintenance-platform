@@ -5,6 +5,8 @@ services:
     image: industrial-maintenance:local
     ports:
       - "127.0.0.1:8000:8000"
+    volumes:
+      - agent-checkpoints:/app/data/processed/agent
     healthcheck:
       test:
         - CMD
@@ -47,3 +49,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+
+volumes:
+  agent-checkpoints:

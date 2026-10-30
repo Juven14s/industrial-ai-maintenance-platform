@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import json
+import re
 import socket
 import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import numpy as np
 import pandas as pd
@@ -33,6 +34,7 @@ REQUIRED_SENSORS = (
 MINIMUM_END_CYCLE = 20
 WINDOW_LENGTH = 30
 MAXIMUM_OBSERVATIONS = 1000
+_INCIDENT_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$")
 
 
 class DashboardInputError(ValueError):
@@ -56,9 +58,7 @@ def validate_source_frame(frame: pd.DataFrame) -> pd.DataFrame:
     required = ("unit_id", "cycle", *REQUIRED_SENSORS)
     missing = [column for column in required if column not in frame.columns]
     if missing:
-        raise DashboardInputError(
-            "Colonnes requises absentes : " + ", ".join(missing)
-        )
+        raise DashboardInputError("Colonnes requises absentes : " + ", ".join(missing))
 
     canonical = frame.copy()
     for column in required:
@@ -76,18 +76,14 @@ def validate_source_frame(frame: pd.DataFrame) -> pd.DataFrame:
 
     identifiers = canonical.loc[:, ["unit_id", "cycle"]].to_numpy(dtype=np.float64)
     if (identifiers <= 0).any() or (identifiers != np.floor(identifiers)).any():
-        raise DashboardInputError(
-            "unit_id et cycle doivent être des entiers strictement positifs."
-        )
+        raise DashboardInputError("unit_id et cycle doivent être des entiers strictement positifs.")
 
     canonical["unit_id"] = canonical["unit_id"].astype(np.int64)
     canonical["cycle"] = canonical["cycle"].astype(np.int64)
     for sensor in REQUIRED_SENSORS:
         canonical[sensor] = canonical[sensor].astype(np.float64)
 
-    canonical = canonical.sort_values(["unit_id", "cycle"], kind="stable").reset_index(
-        drop=True
-    )
+    canonical = canonical.sort_values(["unit_id", "cycle"], kind="stable").reset_index(drop=True)
     duplicates = canonical.duplicated(["unit_id", "cycle"])
     if duplicates.any():
         raise DashboardInputError("Un moteur contient des cycles dupliqués.")
@@ -172,6 +168,43 @@ def build_prediction_payload(history: pd.DataFrame) -> dict[str, Any]:
             observation[sensor] = float(getattr(row, sensor))
         observations.append(observation)
     return {"unit_id": unit_id, "observations": observations}
+
+
+def build_agent_history_payload(history: pd.DataFrame) -> dict[str, Any]:
+    """Translate a dashboard history into the agent's nested sensor contract.
+
+    The regular prediction endpoint uses one flat mapping per cycle whereas the
+    supervised agent deliberately groups measurements under ``sensors``.  Both
+    representations are derived from the same validated history so the UI cannot
+    silently send a different trajectory to the two workflows.
+    """
+
+    prediction_payload = build_prediction_payload(history)
+    observations = []
+    for observation in prediction_payload["observations"]:
+        observations.append(
+            {
+                "cycle": int(observation["cycle"]),
+                "sensors": {sensor: float(observation[sensor]) for sensor in REQUIRED_SENSORS},
+            }
+        )
+    return {
+        "unit_id": int(prediction_payload["unit_id"]),
+        "observations": observations,
+    }
+
+
+def normalize_incident_id(value: str) -> str:
+    """Validate the portable identifier used in both URLs and SQLite threads."""
+
+    normalized = value.strip()
+    if _INCIDENT_ID_PATTERN.fullmatch(normalized) is None:
+        raise ValueError(
+            "L'identifiant doit commencer par une lettre ou un chiffre et contenir "
+            "uniquement lettres, chiffres, point, tiret, deux-points ou underscore "
+            "(100 caractères maximum)."
+        )
+    return normalized
 
 
 def find_default_demo_data(project_root: str | Path | None = None) -> Path | None:
@@ -281,3 +314,34 @@ class MaintenanceApiClient:
 
     def plan_maintenance(self, payload: dict[str, Any]) -> dict[str, Any]:
         return self._request("POST", "/maintenance/plan", payload)
+
+    @staticmethod
+    def _incident_path(incident_id: str) -> str:
+        normalized = normalize_incident_id(incident_id)
+        return quote(normalized, safe="")
+
+    def start_agent(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Start a supervised maintenance analysis."""
+
+        normalized = dict(payload)
+        identifier = normalized.get("incident_id")
+        if not isinstance(identifier, str):
+            raise ValueError("L'identifiant de l'incident est obligatoire.")
+        normalized["incident_id"] = normalize_incident_id(identifier)
+        return self._request("POST", "/agent/runs", normalized)
+
+    def get_agent(self, incident_id: str) -> dict[str, Any]:
+        """Read the latest persisted snapshot for one incident."""
+
+        identifier = self._incident_path(incident_id)
+        return self._request("GET", f"/agent/runs/{identifier}")
+
+    def review_agent(
+        self,
+        incident_id: str,
+        payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Approve, edit, or reject a recommendation awaiting human review."""
+
+        identifier = self._incident_path(incident_id)
+        return self._request("POST", f"/agent/runs/{identifier}/review", payload)
